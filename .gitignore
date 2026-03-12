@@ -37,7 +37,8 @@ next-env.d.ts
 
 # Application data (recordings and uploaded audio files - not for version control)
 /data/recordings.json
-/data/uploads/
+/data/uploads/*
 
 # Keep the data directory itself
 !/data/.gitkeep
+!/data/uploads/.gitkeep

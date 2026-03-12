@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     patientName,
     doctorName,
     date: new Date().toISOString().split("T")[0],
-    status: audioFileName ? "pending" : "pending",
+    status: "pending",
     audioFileName,
     createdAt: now,
     updatedAt: now,

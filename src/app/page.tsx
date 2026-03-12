@@ -52,22 +52,20 @@ export default async function DashboardPage() {
       {recordings.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { label: "Total Recordings", value: stats.total, color: "blue" },
+            { label: "Total Recordings", value: stats.total, colorClass: "text-blue-600" },
             {
               label: "Reports Generated",
               value: stats.completed,
-              color: "green",
+              colorClass: "text-green-600",
             },
-            { label: "Transcribed", value: stats.transcribed, color: "purple" },
-            { label: "Pending", value: stats.pending, color: "yellow" },
+            { label: "Transcribed", value: stats.transcribed, colorClass: "text-purple-600" },
+            { label: "Pending", value: stats.pending, colorClass: "text-yellow-600" },
           ].map((stat) => (
             <div
               key={stat.label}
               className="bg-white rounded-xl border border-gray-200 p-4 text-center"
             >
-              <div
-                className={`text-3xl font-bold text-${stat.color}-600 mb-1`}
-              >
+              <div className={`text-3xl font-bold mb-1 ${stat.colorClass}`}>
                 {stat.value}
               </div>
               <div className="text-xs text-gray-500 font-medium">
