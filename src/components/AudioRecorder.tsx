@@ -125,33 +125,33 @@ export default function AudioRecorder({
   }, [audioUrl, stopTimer]);
 
   return (
-    <div className="space-y-4">
-      {/* Timer */}
-      <div className="flex items-center justify-center">
+    <div className="space-y-5">
+      <div className="flex items-center justify-center gap-4">
         <div
-          className={`text-4xl font-mono font-bold tabular-nums ${
-            state === "recording" ? "text-red-600" : "text-gray-700"
+          className={`rounded-3xl px-6 py-4 text-4xl font-semibold tabular-nums shadow-soft ${
+            state === "recording"
+              ? "bg-red-50 text-red-600"
+              : "bg-white/80 text-slate-700"
           }`}
         >
           {formatDuration(duration)}
         </div>
         {state === "recording" && (
-          <span className="ml-3 flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-red-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+          <span className="flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-red-400 opacity-70"></span>
+            <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500"></span>
           </span>
         )}
       </div>
 
-      {/* Controls */}
       <div className="flex items-center justify-center gap-3 flex-wrap">
         {state === "idle" && (
           <button
             onClick={startRecording}
-            className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-full transition-colors shadow"
+            className="flex items-center gap-2 rounded-full bg-red-600 px-6 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-red-700"
           >
-            <span className="w-3 h-3 rounded-full bg-white animate-pulse" />
-            Start Recording
+            <span className="h-2.5 w-2.5 rounded-full bg-white animate-pulse" />
+            Start recording
           </button>
         )}
 
@@ -159,15 +159,23 @@ export default function AudioRecorder({
           <>
             <button
               onClick={pauseRecording}
-              className="flex items-center gap-2 px-5 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-full transition-colors"
+              className="flex items-center gap-2 rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-600"
             >
-              ⏸ Pause
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M7 5h3v14H7zm7 0h3v14h-3z" />
+              </svg>
+              Pause
             </button>
             <button
               onClick={stopRecording}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gray-700 hover:bg-gray-800 text-white font-medium rounded-full transition-colors"
+              className="flex items-center gap-2 rounded-full bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-900"
             >
-              ⏹ Stop
+              <span className="h-3 w-3 rounded-sm bg-white" />
+              Stop
             </button>
           </>
         )}
@@ -176,15 +184,23 @@ export default function AudioRecorder({
           <>
             <button
               onClick={resumeRecording}
-              className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-full transition-colors"
+              className="flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700"
             >
-              ▶ Resume
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              Resume
             </button>
             <button
               onClick={stopRecording}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gray-700 hover:bg-gray-800 text-white font-medium rounded-full transition-colors"
+              className="flex items-center gap-2 rounded-full bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-900"
             >
-              ⏹ Stop
+              <span className="h-3 w-3 rounded-sm bg-white" />
+              Stop
             </button>
           </>
         )}
@@ -192,33 +208,49 @@ export default function AudioRecorder({
         {state === "stopped" && (
           <button
             onClick={resetRecording}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-full transition-colors"
+            className="flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-slate-800"
           >
-            🔄 Record Again
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.8}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 4v5h5M20 20v-5h-5"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6.5 17.5a7 7 0 0 0 11-5.5M17.5 6.5a7 7 0 0 0-11 5.5"
+              />
+            </svg>
+            Record again
           </button>
         )}
       </div>
 
-      {/* Playback */}
       {audioUrl && (
-        <div className="mt-2">
-          <p className="text-xs text-gray-500 mb-1 text-center">
-            Preview your recording:
+        <div className="mt-2 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
+          <p className="text-xs text-slate-500 mb-2 text-center">
+            Preview your recording
           </p>
           <audio src={audioUrl} controls className="w-full" />
         </div>
       )}
 
-      {/* Error */}
       {error && (
-        <p className="text-sm text-red-600 text-center bg-red-50 rounded-lg p-3">
+        <p className="text-sm text-red-600 text-center bg-red-50 rounded-2xl p-3">
           {error}
         </p>
       )}
 
       {state === "stopped" && !error && (
-        <p className="text-sm text-green-600 text-center">
-          ✓ Recording captured ({formatDuration(duration)})
+        <p className="text-sm text-emerald-600 text-center">
+          Recording captured ({formatDuration(duration)})
         </p>
       )}
     </div>

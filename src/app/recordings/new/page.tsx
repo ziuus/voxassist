@@ -74,67 +74,81 @@ export default function NewRecordingPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">New Recording</h1>
-        <p className="text-gray-500 mt-1">
+    <div className="max-w-3xl mx-auto space-y-8">
+      <div className="glass rounded-3xl border border-white/70 p-8">
+        <p className="text-xs uppercase tracking-[0.3em] text-teal-600">
+          New session
+        </p>
+        <h1 className="text-3xl sm:text-4xl font-semibold text-slate-900">
+          Create a new recording
+        </h1>
+        <p className="text-slate-600 mt-2">
           Record a conversation or upload an existing audio file to generate a
           medical report.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Session Details */}
-        <section className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <h2 className="font-semibold text-gray-800">Session Details</h2>
+        <section className="glass rounded-3xl border border-white/70 p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-slate-900">
+              Session details
+            </h2>
+            <span className="text-xs font-medium text-slate-400">
+              Optional metadata
+            </span>
+          </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Recording Title
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Recording title
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g., Follow-up consultation – John Doe"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Patient Name
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Patient name
               </label>
               <input
                 type="text"
                 value={patientName}
                 onChange={(e) => setPatientName(e.target.value)}
                 placeholder="Patient name"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Doctor Name
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Doctor name
               </label>
               <input
                 type="text"
                 value={doctorName}
                 onChange={(e) => setDoctorName(e.target.value)}
                 placeholder="Doctor name"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
               />
             </div>
           </div>
         </section>
 
-        {/* Audio Input */}
-        <section className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <h2 className="font-semibold text-gray-800">Audio Input</h2>
+        <section className="glass rounded-3xl border border-white/70 p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-slate-900">Audio input</h2>
+            <span className="text-xs text-slate-400">
+              Max 25MB per file
+            </span>
+          </div>
 
-          {/* Tab toggle */}
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+          <div className="flex gap-2 rounded-full bg-white/80 p-1 shadow-soft">
             {(["record", "upload"] as InputMethod[]).map((method) => (
               <button
                 key={method}
@@ -144,13 +158,13 @@ export default function NewRecordingPage() {
                   setAudioBlob(null);
                   setUploadedFile(null);
                 }}
-                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${
                   inputMethod === method
-                    ? "bg-white text-gray-900 shadow"
-                    : "text-gray-600 hover:text-gray-800"
+                    ? "bg-slate-900 text-white shadow"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                {method === "record" ? "🎙 Record" : "📁 Upload"}
+                {method === "record" ? "Record audio" : "Upload file"}
               </button>
             ))}
           </div>
@@ -160,22 +174,22 @@ export default function NewRecordingPage() {
               <AudioRecorder onRecordingComplete={handleRecordingComplete} />
             </div>
           ) : (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Audio File
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700">
+                Audio file
               </label>
               <input
                 type="file"
                 accept="audio/*"
                 onChange={handleFileChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="block w-full text-sm text-slate-500 file:mr-4 file:rounded-full file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-800"
               />
-              <p className="mt-1 text-xs text-gray-400">
-                Supported formats: MP3, WAV, M4A, WEBM, OGG, FLAC (max 25MB)
+              <p className="text-xs text-slate-400">
+                Supported formats: MP3, WAV, M4A, WEBM, OGG, FLAC.
               </p>
               {uploadedFile && (
-                <p className="mt-2 text-sm text-green-600">
-                  ✓ Selected: {uploadedFile.name} (
+                <p className="text-sm text-emerald-600">
+                  Selected: {uploadedFile.name} (
                   {(uploadedFile.size / 1024 / 1024).toFixed(1)} MB)
                 </p>
               )}
@@ -184,23 +198,23 @@ export default function NewRecordingPage() {
         </section>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         )}
 
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row">
           <button
             type="button"
             onClick={() => router.back()}
-            className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
+            className="flex-1 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-white"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold rounded-xl transition-colors"
+            className="flex-1 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-slate-800 disabled:bg-slate-400"
           >
             {isSubmitting ? "Saving…" : "Save & Continue"}
           </button>

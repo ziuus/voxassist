@@ -97,7 +97,7 @@ export default function RecordingDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600" />
       </div>
     );
   }
@@ -110,56 +110,62 @@ export default function RecordingDetailPage() {
     ["transcribed", "completed"].includes(recording.status);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-start gap-4">
-        <Link
-          href="/"
-          className="mt-1 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          ←
-        </Link>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-bold text-gray-900 truncate">
-            {recording.title}
-          </h1>
-          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
-            {recording.patientName && <span>Patient: {recording.patientName}</span>}
-            {recording.doctorName && (
-              <span>Doctor: Dr. {recording.doctorName}</span>
-            )}
-            <span>
-              {new Date(recording.createdAt).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </span>
+    <div className="max-w-4xl mx-auto space-y-8">
+      <div className="glass rounded-3xl border border-white/70 p-6 sm:p-8">
+        <div className="flex flex-wrap items-start gap-4">
+          <Link
+            href="/"
+            className="rounded-2xl border border-white/80 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-600 shadow-soft transition hover:text-slate-900"
+          >
+            Back
+          </Link>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs uppercase tracking-[0.3em] text-teal-600">
+              Recording overview
+            </p>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 truncate">
+              {recording.title}
+            </h1>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
+              {recording.patientName && (
+                <span>Patient: {recording.patientName}</span>
+              )}
+              {recording.doctorName && (
+                <span>Doctor: Dr. {recording.doctorName}</span>
+              )}
+              <span>
+                {new Date(recording.createdAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </span>
+            </div>
           </div>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="rounded-2xl border border-white/70 bg-white/80 px-3 py-2 text-sm font-semibold text-red-500 shadow-soft transition hover:bg-red-50"
+            title="Delete recording"
+          >
+            Delete
+          </button>
         </div>
-        <button
-          onClick={handleDelete}
-          disabled={deleting}
-          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-          title="Delete recording"
-        >
-          🗑
-        </button>
       </div>
 
       {/* Error alert */}
       {(error ?? recording.errorMessage) && (
-        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error ?? recording.errorMessage}
         </div>
       )}
 
       {/* Action Buttons */}
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex flex-wrap gap-3">
         <button
           onClick={handleTranscribe}
           disabled={!canTranscribe || processingStep !== null}
-          className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-200 disabled:text-gray-400 text-white text-sm font-medium rounded-full transition-colors"
+          className="flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-slate-800 disabled:bg-slate-300 disabled:text-slate-500"
         >
           {processingStep === "transcribe" ? (
             <>
@@ -167,14 +173,14 @@ export default function RecordingDetailPage() {
               Transcribing…
             </>
           ) : (
-            <>🎙 Transcribe Audio</>
+            <>Transcribe audio</>
           )}
         </button>
 
         <button
           onClick={handleGenerateReport}
           disabled={!canGenerateReport || processingStep !== null}
-          className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-200 disabled:text-gray-400 text-white text-sm font-medium rounded-full transition-colors"
+          className="flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-emerald-700 disabled:bg-slate-300 disabled:text-slate-500"
         >
           {processingStep === "report" ? (
             <>
@@ -182,15 +188,15 @@ export default function RecordingDetailPage() {
               Generating…
             </>
           ) : (
-            <>📋 Generate Report</>
+            <>Generate report</>
           )}
         </button>
       </div>
 
       {/* Status indicator */}
       {["transcribing", "generating_report"].includes(recording.status) && (
-        <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-700">
-          <span className="animate-spin inline-block w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full" />
+        <div className="flex items-center gap-3 rounded-2xl border border-teal-100 bg-teal-50 px-4 py-3 text-sm text-teal-700">
+          <span className="animate-spin inline-block w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full" />
           {recording.status === "transcribing"
             ? "Transcription in progress…"
             : "Generating medical report…"}
@@ -199,30 +205,30 @@ export default function RecordingDetailPage() {
 
       {/* Tabs */}
       {(recording.transcript || recording.report) && (
-        <div>
-          <div className="flex gap-1 border-b border-gray-200">
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2 rounded-full bg-white/80 p-1 shadow-soft">
             {(["transcript", "report"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                   activeTab === tab
-                    ? "border-blue-600 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
+                    ? "bg-slate-900 text-white shadow"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                {tab === "transcript" ? "📝 Transcript" : "📋 Medical Report"}
+                {tab === "transcript" ? "Transcript" : "Medical report"}
               </button>
             ))}
           </div>
 
-          <div className="mt-4">
+          <div>
             {activeTab === "transcript" && recording.transcript && (
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h3 className="font-semibold text-gray-800 mb-3">
-                  Conversation Transcript
+              <div className="glass rounded-3xl border border-white/70 p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-3">
+                  Conversation transcript
                 </h3>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
                   {recording.transcript}
                 </p>
               </div>
@@ -233,16 +239,16 @@ export default function RecordingDetailPage() {
             )}
 
             {activeTab === "transcript" && !recording.transcript && (
-              <div className="text-center py-12 text-gray-400">
-                <p>No transcript yet. Click &quot;Transcribe Audio&quot; to begin.</p>
+              <div className="text-center py-12 text-slate-400">
+                <p>No transcript yet. Click Transcribe audio to begin.</p>
               </div>
             )}
 
             {activeTab === "report" && !recording.report && (
-              <div className="text-center py-12 text-gray-400">
+              <div className="text-center py-12 text-slate-400">
                 <p>
-                  No report yet. Transcribe the audio first, then click
-                  &quot;Generate Report&quot;.
+                  No report yet. Transcribe the audio first, then click Generate
+                  report.
                 </p>
               </div>
             )}
@@ -252,10 +258,10 @@ export default function RecordingDetailPage() {
 
       {/* No content yet */}
       {!recording.transcript && !recording.report && (
-        <div className="text-center py-16 bg-white rounded-xl border border-dashed border-gray-300">
-          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="glass rounded-3xl border border-white/70 p-10 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-100 text-teal-700">
             <svg
-              className="w-8 h-8 text-blue-400"
+              className="h-8 w-8"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -263,25 +269,25 @@ export default function RecordingDetailPage() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
+                strokeWidth={1.8}
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
           </div>
           {recording.audioFileName ? (
             <>
-              <p className="text-gray-500 font-medium">
+              <p className="text-slate-700 font-semibold">
                 Audio saved. Ready to transcribe.
               </p>
-              <p className="text-sm text-gray-400 mt-1">
-                Click &quot;Transcribe Audio&quot; above to convert the conversation to
+              <p className="text-sm text-slate-500 mt-1">
+                Click Transcribe audio above to convert the conversation to
                 text.
               </p>
             </>
           ) : (
             <>
-              <p className="text-gray-500 font-medium">No audio attached</p>
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="text-slate-700 font-semibold">No audio attached</p>
+              <p className="text-sm text-slate-500 mt-1">
                 This recording has no audio file associated with it.
               </p>
             </>
