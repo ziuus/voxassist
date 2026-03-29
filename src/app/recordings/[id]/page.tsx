@@ -38,16 +38,45 @@ export default function RecordingDetailPage() {
     fetchRecording();
   }, [fetchRecording]);
 
-  // Poll when processing
+  // Prefer SSE for live status updates while long-running jobs are active.
   useEffect(() => {
     if (
       !recording ||
       !["transcribing", "generating_report"].includes(recording.status)
     )
       return;
-    const interval = setInterval(fetchRecording, 2000);
-    return () => clearInterval(interval);
-  }, [recording, fetchRecording]);
+
+    let fallbackInterval: ReturnType<typeof setInterval> | null = null;
+    const stream = new EventSource(`/api/recordings/${id}/events`);
+
+    stream.addEventListener("recording", (event) => {
+      try {
+        const latest = JSON.parse((event as MessageEvent).data) as Recording;
+        setRecording(latest);
+      } catch {
+        // Ignore malformed stream chunks.
+      }
+    });
+
+    stream.addEventListener("complete", () => {
+      stream.close();
+      fetchRecording();
+    });
+
+    stream.addEventListener("error", () => {
+      stream.close();
+      if (!fallbackInterval) {
+        fallbackInterval = setInterval(fetchRecording, 3000);
+      }
+    });
+
+    return () => {
+      stream.close();
+      if (fallbackInterval) {
+        clearInterval(fallbackInterval);
+      }
+    };
+  }, [id, recording, fetchRecording]);
 
   const handleTranscribe = async () => {
     if (!recording) return;
@@ -85,6 +114,37 @@ export default function RecordingDetailPage() {
       setRecording(data);
       setActiveTab("report");
     }
+  };
+
+  const handleRetry = async () => {
+    if (!recording) return;
+    setError(null);
+
+    const retryStep: ProcessingStep =
+      !recording.transcript && (recording.audioFileName || recording.audioStorageKey)
+        ? "transcribe"
+        : "report";
+
+    setProcessingStep(retryStep);
+
+    const res = await fetch(`/api/recordings/${id}/retry`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ step: retryStep }),
+    });
+
+    const data = (await res.json()) as Recording & { error?: string };
+    setProcessingStep(null);
+
+    if (!res.ok) {
+      setError(data.error ?? "Retry failed");
+      return;
+    }
+
+    setRecording(data);
+    setActiveTab(retryStep === "transcribe" ? "transcript" : "report");
   };
 
   const handleDelete = async () => {
@@ -191,7 +251,41 @@ export default function RecordingDetailPage() {
             <>Generate report</>
           )}
         </button>
+
+        {recording.status === "error" && (
+          <button
+            onClick={handleRetry}
+            disabled={processingStep !== null}
+            className="flex items-center gap-2 rounded-full bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-rose-700 disabled:bg-slate-300 disabled:text-slate-500"
+          >
+            {processingStep !== null ? (
+              <>
+                <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                Retrying…
+              </>
+            ) : (
+              <>Retry failed step</>
+            )}
+          </button>
+        )}
       </div>
+
+      {recording.audioFileName && (
+        <div className="glass rounded-3xl border border-white/70 p-5">
+          <h3 className="text-base font-semibold text-slate-900">Audio replay</h3>
+          <p className="mt-1 text-sm text-slate-500">
+            Listen to the original patient conversation recording.
+          </p>
+          <audio
+            className="mt-4 w-full"
+            controls
+            preload="metadata"
+            src={recording.audioPlaybackUrl ?? `/api/recordings/${id}/audio`}
+          >
+            Your browser does not support audio playback.
+          </audio>
+        </div>
+      )}
 
       {/* Status indicator */}
       {["transcribing", "generating_report"].includes(recording.status) && (

@@ -4,17 +4,28 @@ import {
   deleteRecording,
   saveRecording,
 } from "@/lib/storage";
+import { deleteAudioFile, getAudioPlaybackUrl } from "@/lib/audioStorage";
+
+export const runtime = "nodejs";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const recording = getRecordingById(id);
+  const recording = await getRecordingById(id);
   if (!recording) {
     return NextResponse.json({ error: "Recording not found" }, { status: 404 });
   }
-  return NextResponse.json(recording);
+
+  const audioStorageKey = recording.audioStorageKey ?? recording.audioFileName;
+  return NextResponse.json({
+    ...recording,
+    audioStorageKey,
+    audioPlaybackUrl: audioStorageKey
+      ? await getAudioPlaybackUrl(recording.id, audioStorageKey)
+      : undefined,
+  });
 }
 
 export async function PATCH(
@@ -22,7 +33,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const recording = getRecordingById(id);
+  const recording = await getRecordingById(id);
   if (!recording) {
     return NextResponse.json({ error: "Recording not found" }, { status: 404 });
   }
@@ -34,7 +45,7 @@ export async function PATCH(
     id: recording.id,
     updatedAt: new Date().toISOString(),
   };
-  saveRecording(updated);
+  await saveRecording(updated);
   return NextResponse.json(updated);
 }
 
@@ -43,7 +54,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const deleted = deleteRecording(id);
+  const existing = await getRecordingById(id);
+  if (!existing) {
+    return NextResponse.json({ error: "Recording not found" }, { status: 404 });
+  }
+
+  await deleteAudioFile(existing.audioStorageKey ?? existing.audioFileName);
+
+  const deleted = await deleteRecording(id);
   if (!deleted) {
     return NextResponse.json({ error: "Recording not found" }, { status: 404 });
   }

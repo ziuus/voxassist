@@ -5,6 +5,15 @@ import { useRouter } from "next/navigation";
 import AudioRecorder from "@/components/AudioRecorder";
 
 type InputMethod = "record" | "upload";
+type TranscriptionMode = "server" | "browser";
+
+function getDefaultTranscriptionMode(): TranscriptionMode {
+  const configured = process.env.NEXT_PUBLIC_DEFAULT_TRANSCRIPTION_MODE;
+  if (configured === "server" || configured === "browser") {
+    return configured;
+  }
+  return "browser";
+}
 
 export default function NewRecordingPage() {
   const router = useRouter();
@@ -13,12 +22,19 @@ export default function NewRecordingPage() {
   const [patientName, setPatientName] = useState("");
   const [doctorName, setDoctorName] = useState("");
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [browserTranscript, setBrowserTranscript] = useState("");
+  const [transcriptionMode, setTranscriptionMode] =
+    useState<TranscriptionMode>(getDefaultTranscriptionMode());
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleRecordingComplete = useCallback((blob: Blob) => {
     setAudioBlob(blob);
+  }, []);
+
+  const handleTranscriptReady = useCallback((transcript: string) => {
+    setBrowserTranscript(transcript);
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,6 +64,9 @@ export default function NewRecordingPage() {
       formData.append("title", title || "Untitled Recording");
       if (patientName) formData.append("patientName", patientName);
       if (doctorName) formData.append("doctorName", doctorName);
+      if (transcriptionMode === "browser" && browserTranscript.trim()) {
+        formData.append("transcript", browserTranscript.trim());
+      }
 
       const fileName =
         inputMethod === "upload" && uploadedFile
@@ -157,6 +176,7 @@ export default function NewRecordingPage() {
                   setInputMethod(method);
                   setAudioBlob(null);
                   setUploadedFile(null);
+                  setBrowserTranscript("");
                 }}
                 className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${
                   inputMethod === method
@@ -170,8 +190,44 @@ export default function NewRecordingPage() {
           </div>
 
           {inputMethod === "record" ? (
-            <div className="py-4">
-              <AudioRecorder onRecordingComplete={handleRecordingComplete} />
+            <div className="space-y-4 py-4">
+              <div className="rounded-2xl border border-slate-200 bg-white/70 p-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                  Transcription source
+                </p>
+                <div className="mt-2 flex gap-2 rounded-full bg-white p-1 shadow-soft">
+                  {(["server", "browser"] as TranscriptionMode[]).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => {
+                        setTranscriptionMode(mode);
+                        setBrowserTranscript("");
+                      }}
+                      className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${
+                        transcriptionMode === mode
+                          ? "bg-slate-900 text-white shadow"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      {mode === "server" ? "Server AI" : "Browser API"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <AudioRecorder
+                onRecordingComplete={handleRecordingComplete}
+                enableBrowserTranscription={transcriptionMode === "browser"}
+                onTranscriptReady={handleTranscriptReady}
+              />
+
+              {transcriptionMode === "browser" && (
+                <p className="text-xs text-slate-500">
+                  Browser speech recognition support varies by browser. If not
+                  available, switch to Server AI mode.
+                </p>
+              )}
             </div>
           ) : (
             <div className="space-y-2">

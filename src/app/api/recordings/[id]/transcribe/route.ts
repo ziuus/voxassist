@@ -1,56 +1,56 @@
 import { NextRequest, NextResponse } from "next/server";
-import path from "path";
-import { getRecordingById, saveRecording, UPLOADS_DIR } from "@/lib/storage";
-import { transcribeAudio } from "@/lib/openai";
+import { getRecordingById, saveRecording } from "@/lib/storage";
+import { enqueueRecordingJob, shouldUseJobQueue } from "@/lib/queue";
+import { processTranscriptionJob } from "@/lib/recordingJobs";
+
+export const runtime = "nodejs";
 
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const recording = getRecordingById(id);
+  const recording = await getRecordingById(id);
 
   if (!recording) {
     return NextResponse.json({ error: "Recording not found" }, { status: 404 });
   }
 
-  if (!recording.audioFileName) {
+  const audioStorageKey = recording.audioStorageKey ?? recording.audioFileName;
+  if (!audioStorageKey) {
     return NextResponse.json(
       { error: "No audio file associated with this recording" },
       { status: 400 }
     );
   }
 
-  const audioPath = path.join(UPLOADS_DIR, recording.audioFileName);
-
-  // Update status to transcribing
-  saveRecording({
+  const inProgress = {
     ...recording,
-    status: "transcribing",
+    status: "transcribing" as const,
+    errorMessage: undefined,
     updatedAt: new Date().toISOString(),
-  });
+  };
+
+  await saveRecording(inProgress);
+
+  if (shouldUseJobQueue()) {
+    await enqueueRecordingJob("transcribe", { recordingId: id });
+    return NextResponse.json(
+      {
+        ...inProgress,
+        queued: true,
+      },
+      { status: 202 }
+    );
+  }
 
   try {
-    const transcript = await transcribeAudio(audioPath);
-
-    const updated = {
-      ...recording,
-      transcript,
-      status: "transcribed" as const,
-      updatedAt: new Date().toISOString(),
-    };
-    saveRecording(updated);
-
-    return NextResponse.json(updated);
+    await processTranscriptionJob(id);
+    const updated = await getRecordingById(id);
+    return NextResponse.json(updated ?? inProgress);
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Transcription failed";
-    saveRecording({
-      ...recording,
-      status: "error",
-      errorMessage,
-      updatedAt: new Date().toISOString(),
-    });
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

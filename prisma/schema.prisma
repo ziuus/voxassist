@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum RecordingStatus {
+  pending
+  transcribing
+  transcribed
+  generating_report
+  completed
+  error
+}
+
+model Patient {
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  fullName   String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  recordings Recording[]
+
+  @@index([fullName])
+}
+
+model Recording {
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  externalId       String          @unique
+  title            String
+  patientName      String?
+  doctorName       String?
+  date             DateTime
+  status           RecordingStatus @default(pending)
+  audioFileName    String?
+  audioStorageKey  String?
+  audioMimeType    String?
+  duration         Int?
+  transcript       String?
+  report           Json?
+  errorMessage     String?
+  patientId        String?         @db.ObjectId
+  patient          Patient?        @relation(fields: [patientId], references: [id])
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([createdAt(sort: Desc)])
+  @@index([status])
+  @@index([patientId])
+}

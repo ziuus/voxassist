@@ -30,6 +30,9 @@ export interface Recording {
   date: string;
   status: RecordingStatus;
   audioFileName?: string;
+  audioStorageKey?: string;
+  audioMimeType?: string;
+  audioPlaybackUrl?: string;
   duration?: number;
   transcript?: string;
   report?: MedicalReport;

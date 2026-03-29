@@ -6,9 +6,20 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\""
+    "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\"",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "migrate:recordings": "tsx scripts/migrateRecordingsToMongo.ts",
+    "worker:recordings": "tsx src/workers/recordingWorker.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.910.0",
+    "@aws-sdk/s3-request-presigner": "^3.910.0",
+    "@prisma/client": "^6.17.1",
+    "bullmq": "^5.58.0",
+    "framer-motion": "^12.6.3",
+    "@google/generative-ai": "^0.24.1",
+    "ioredis": "^5.8.1",
     "next": "16.1.6",
     "openai": "^4.77.3",
     "react": "19.2.3",
@@ -26,7 +37,9 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/uuid": "^10.0.0",
+    "prisma": "^6.17.1",
     "tailwindcss": "^4",
+    "tsx": "^4.20.6",
     "typescript": "^5"
   }
 }

@@ -7,9 +7,18 @@ export default function Navigation() {
   const pathname = usePathname();
 
   const navItems = [
-    { href: "/", label: "Dashboard" },
+    { href: "/", label: "Landing" },
+    { href: "/dashboard", label: "Dashboard" },
     { href: "/recordings/new", label: "New Recording" },
   ];
+
+  const isActive = (href: string) => {
+    if (href === "/") {
+      return pathname === "/";
+    }
+
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
 
   return (
     <nav className="sticky top-0 z-50 border-b border-black/10 bg-white/75 backdrop-blur-xl">
@@ -47,7 +56,7 @@ export default function Navigation() {
                 key={item.href}
                 href={item.href}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  pathname === item.href
+                  isActive(item.href)
                     ? "bg-slate-900 text-white shadow"
                     : "text-slate-600 hover:text-slate-900 hover:bg-white"
                 }`}

@@ -1,5 +1,5 @@
-@import "tailwindcss";
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Sora:wght@300;400;500;600;700&display=swap");
+@import "tailwindcss";
 
 :root {
   --app-bg: #f4f0ea;
@@ -23,12 +23,14 @@
 
   html {
     text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
   }
 
   body {
     background: var(--app-bg);
     color: var(--app-ink);
     font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+    overflow-x: clip;
   }
 
   h1,
@@ -79,6 +81,41 @@
     background: rgba(255, 255, 255, 0.82);
     backdrop-filter: blur(22px);
     box-shadow: 0 24px 50px -32px rgba(11, 28, 44, 0.45);
+  }
+
+  .liquid-glass {
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.78),
+      rgba(255, 255, 255, 0.5)
+    );
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(24px) saturate(140%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75),
+      0 30px 70px -50px rgba(10, 25, 45, 0.8);
+  }
+
+  .cinematic-grid {
+    background-image: radial-gradient(
+        circle at 25% 15%,
+        rgba(14, 122, 115, 0.2),
+        transparent 45%
+      ),
+      radial-gradient(circle at 85% 10%, rgba(29, 78, 216, 0.15), transparent 40%),
+      linear-gradient(rgba(11, 28, 44, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(11, 28, 44, 0.06) 1px, transparent 1px);
+    background-size: auto, auto, 36px 36px, 36px 36px;
+  }
+
+  .video-frame {
+    box-shadow: 0 30px 80px -45px rgba(10, 24, 45, 0.85),
+      0 2px 0 rgba(255, 255, 255, 0.35) inset;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  .depth-tilt {
+    transform-style: preserve-3d;
+    perspective: 1100px;
   }
 
   .shadow-soft {

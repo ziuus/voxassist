@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRecordingById, saveRecording } from "@/lib/storage";
-import { generateMedicalReport } from "@/lib/openai";
+import { enqueueRecordingJob, shouldUseJobQueue } from "@/lib/queue";
+import { processReportJob } from "@/lib/recordingJobs";
 
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const recording = getRecordingById(id);
+  const recording = await getRecordingById(id);
 
   if (!recording) {
     return NextResponse.json({ error: "Recording not found" }, { status: 404 });
@@ -23,38 +24,33 @@ export async function POST(
     );
   }
 
-  // Update status to generating_report
-  saveRecording({
+  const inProgress = {
     ...recording,
-    status: "generating_report",
+    status: "generating_report" as const,
+    errorMessage: undefined,
     updatedAt: new Date().toISOString(),
-  });
+  };
+
+  await saveRecording(inProgress);
+
+  if (shouldUseJobQueue()) {
+    await enqueueRecordingJob("report", { recordingId: id });
+    return NextResponse.json(
+      {
+        ...inProgress,
+        queued: true,
+      },
+      { status: 202 }
+    );
+  }
 
   try {
-    const report = await generateMedicalReport(
-      recording.transcript,
-      recording.patientName,
-      recording.doctorName
-    );
-
-    const updated = {
-      ...recording,
-      report,
-      status: "completed" as const,
-      updatedAt: new Date().toISOString(),
-    };
-    saveRecording(updated);
-
-    return NextResponse.json(updated);
+    await processReportJob(id);
+    const updated = await getRecordingById(id);
+    return NextResponse.json(updated ?? inProgress);
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Report generation failed";
-    saveRecording({
-      ...recording,
-      status: "error",
-      errorMessage,
-      updatedAt: new Date().toISOString(),
-    });
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
