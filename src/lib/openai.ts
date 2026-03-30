@@ -74,7 +74,7 @@ function extractJsonObject(raw: string): string {
 
 async function transcribeWithGoogle(audioFilePath: string): Promise<string> {
   const client = getGoogleClient();
-  const model = process.env.GOOGLE_TRANSCRIPTION_MODEL ?? "gemini-1.5-flash";
+  const model = process.env.GOOGLE_TRANSCRIPTION_MODEL ?? "gemini-2.0-flash";
   const audioBuffer = fs.readFileSync(audioFilePath);
   const audioBase64 = audioBuffer.toString("base64");
   const mimeType = getMimeTypeFromPath(audioFilePath);
@@ -190,7 +190,7 @@ async function generateReportWithGoogle(
   doctorName?: string
 ): Promise<MedicalReport> {
   const client = getGoogleClient();
-  const model = process.env.GOOGLE_MODEL ?? "gemini-1.5-flash";
+  const model = process.env.GOOGLE_MODEL ?? "gemini-2.0-flash";
   const today = new Date().toISOString().split("T")[0];
 
   const genModel = client.getGenerativeModel({ model });

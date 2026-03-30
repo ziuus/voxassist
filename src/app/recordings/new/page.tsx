@@ -9,10 +9,15 @@ type TranscriptionMode = "server" | "browser";
 
 function getDefaultTranscriptionMode(): TranscriptionMode {
   const configured = process.env.NEXT_PUBLIC_DEFAULT_TRANSCRIPTION_MODE;
-  if (configured === "server" || configured === "browser") {
-    return configured;
+  if (configured === "server") {
+    return "server";
   }
   return "browser";
+}
+
+function isBrowserTranscriptionSupported(): boolean {
+  if (typeof window === "undefined") return false;
+  return typeof WebAssembly !== "undefined";
 }
 
 export default function NewRecordingPage() {
@@ -24,10 +29,14 @@ export default function NewRecordingPage() {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [browserTranscript, setBrowserTranscript] = useState("");
   const [transcriptionMode, setTranscriptionMode] =
-    useState<TranscriptionMode>(getDefaultTranscriptionMode());
+    useState<TranscriptionMode>(() => {
+      if (!isBrowserTranscriptionSupported()) return "server";
+      return getDefaultTranscriptionMode();
+    });
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [browserSupported] = useState(isBrowserTranscriptionSupported());
 
   const handleRecordingComplete = useCallback((blob: Blob) => {
     setAudioBlob(blob);
@@ -64,7 +73,14 @@ export default function NewRecordingPage() {
       formData.append("title", title || "Untitled Recording");
       if (patientName) formData.append("patientName", patientName);
       if (doctorName) formData.append("doctorName", doctorName);
-      if (transcriptionMode === "browser" && browserTranscript.trim()) {
+      // Always require local transcription - no server fallback
+      if (!browserTranscript.trim() && transcriptionMode === "browser") {
+        setError("Please enable transcription and speak during recording.");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (browserTranscript.trim()) {
         formData.append("transcript", browserTranscript.trim());
       }
 
@@ -200,6 +216,7 @@ export default function NewRecordingPage() {
                     <button
                       key={mode}
                       type="button"
+                      disabled={mode === "browser" && !browserSupported}
                       onClick={() => {
                         setTranscriptionMode(mode);
                         setBrowserTranscript("");
@@ -208,9 +225,9 @@ export default function NewRecordingPage() {
                         transcriptionMode === mode
                           ? "bg-slate-900 text-white shadow"
                           : "text-slate-600 hover:text-slate-900"
-                      }`}
+                      } ${mode === "browser" && !browserSupported ? "opacity-40 cursor-not-allowed" : ""}`}
                     >
-                      {mode === "server" ? "Server AI" : "Browser API"}
+                      {mode === "server" ? "Server AI" : "Offline (Local)"}
                     </button>
                   ))}
                 </div>
@@ -224,8 +241,7 @@ export default function NewRecordingPage() {
 
               {transcriptionMode === "browser" && (
                 <p className="text-xs text-slate-500">
-                  Browser speech recognition support varies by browser. If not
-                  available, switch to Server AI mode.
+                  Browser transcription using Web Speech API. Works in Chrome/Edge. Real-time, no downloads.
                 </p>
               )}
             </div>

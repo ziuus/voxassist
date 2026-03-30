@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
+import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 
 interface AudioRecorderProps {
   onRecordingComplete: (blob: Blob) => void;
@@ -9,47 +10,6 @@ interface AudioRecorderProps {
 }
 
 type RecordingState = "idle" | "recording" | "paused" | "stopped";
-
-type SpeechRecognitionResultItem = {
-  transcript: string;
-};
-
-type SpeechRecognitionResultListItem = {
-  isFinal: boolean;
-  0: SpeechRecognitionResultItem;
-};
-
-type SpeechRecognitionEventLike = {
-  resultIndex: number;
-  results: ArrayLike<SpeechRecognitionResultListItem>;
-};
-
-type SpeechRecognitionLike = {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  onerror: ((event: { error?: string }) => void) | null;
-  onend: (() => void) | null;
-  start: () => void;
-  stop: () => void;
-};
-
-type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
-
-type BrowserWithSpeech = Window & {
-  SpeechRecognition?: SpeechRecognitionConstructor;
-  webkitSpeechRecognition?: SpeechRecognitionConstructor;
-};
-
-function getSpeechRecognitionConstructor(): SpeechRecognitionConstructor | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  const browser = window as BrowserWithSpeech;
-  return browser.SpeechRecognition ?? browser.webkitSpeechRecognition ?? null;
-}
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60)
@@ -70,15 +30,18 @@ export default function AudioRecorder({
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [liveTranscript, setLiveTranscript] = useState("");
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
-  const finalTranscriptRef = useRef("");
-  const shouldKeepRecognitionRunningRef = useRef(false);
+
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition,
+  } = useSpeechRecognition();
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) {
@@ -92,59 +55,18 @@ export default function AudioRecorder({
     setAudioUrl(null);
     setDuration(0);
     chunksRef.current = [];
-    setLiveTranscript("");
-    finalTranscriptRef.current = "";
+    resetTranscript();
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
       if (enableBrowserTranscription) {
-        const RecognitionCtor = getSpeechRecognitionConstructor();
-        if (!RecognitionCtor) {
-          throw new Error(
-            "Browser transcription is not supported in this browser. Use server transcription instead."
-          );
+        if (!browserSupportsSpeechRecognition) {
+          setError("Browser doesn't support speech recognition. Use Chrome or Edge.");
+          return;
         }
-
-        const recognition = new RecognitionCtor();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = "en-US";
-
-        recognition.onresult = (event) => {
-          let interim = "";
-          for (let i = event.resultIndex; i < event.results.length; i += 1) {
-            const segment = event.results[i];
-            const text = segment[0]?.transcript ?? "";
-            if (segment.isFinal) {
-              finalTranscriptRef.current = `${finalTranscriptRef.current} ${text}`.trim();
-            } else {
-              interim = `${interim} ${text}`.trim();
-            }
-          }
-          const merged = `${finalTranscriptRef.current} ${interim}`.trim();
-          setLiveTranscript(merged);
-        };
-
-        recognition.onerror = (event) => {
-          const type = event.error ?? "unknown";
-          setError(`Browser transcription error: ${type}`);
-        };
-
-        recognition.onend = () => {
-          if (shouldKeepRecognitionRunningRef.current) {
-            try {
-              recognition.start();
-            } catch {
-              // Ignore repeated start errors from browser speech engine.
-            }
-          }
-        };
-
-        recognitionRef.current = recognition;
-        shouldKeepRecognitionRunningRef.current = true;
-        recognition.start();
+        SpeechRecognition.startListening({ continuous: true, language: 'en-US' });
       }
 
       const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
@@ -166,14 +88,12 @@ export default function AudioRecorder({
         setAudioUrl(url);
         onRecordingComplete(blob);
 
-        const finalTranscript = finalTranscriptRef.current.trim();
-        if (enableBrowserTranscription && onTranscriptReady && finalTranscript) {
-          onTranscriptReady(finalTranscript);
+        if (enableBrowserTranscription) {
+          SpeechRecognition.stopListening();
+          if (onTranscriptReady && transcript) {
+            onTranscriptReady(transcript);
+          }
         }
-
-        shouldKeepRecognitionRunningRef.current = false;
-        recognitionRef.current?.stop();
-        recognitionRef.current = null;
 
         // Stop all tracks
         streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -186,12 +106,19 @@ export default function AudioRecorder({
       timerRef.current = setInterval(() => {
         setDuration((d) => d + 1);
       }, 1000);
-    } catch {
+    } catch (err) {
       setError(
         "Microphone access denied. Please allow microphone access to record."
       );
     }
-  }, [enableBrowserTranscription, onRecordingComplete, onTranscriptReady]);
+  }, [
+    enableBrowserTranscription,
+    browserSupportsSpeechRecognition,
+    onRecordingComplete,
+    onTranscriptReady,
+    resetTranscript,
+    transcript,
+  ]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current?.state !== "inactive") {
@@ -204,50 +131,45 @@ export default function AudioRecorder({
   const pauseRecording = useCallback(() => {
     if (mediaRecorderRef.current?.state === "recording") {
       mediaRecorderRef.current.pause();
-      shouldKeepRecognitionRunningRef.current = false;
-      recognitionRef.current?.stop();
+      if (enableBrowserTranscription && listening) {
+        SpeechRecognition.stopListening();
+      }
       stopTimer();
       setState("paused");
     }
-  }, [stopTimer]);
+  }, [stopTimer, enableBrowserTranscription, listening]);
 
   const resumeRecording = useCallback(() => {
     if (mediaRecorderRef.current?.state === "paused") {
       mediaRecorderRef.current.resume();
-
-      if (enableBrowserTranscription && recognitionRef.current) {
-        shouldKeepRecognitionRunningRef.current = true;
-        try {
-          recognitionRef.current.start();
-        } catch {
-          // Ignore repeated start errors from browser speech engine.
-        }
+      if (enableBrowserTranscription && !listening) {
+        SpeechRecognition.startListening({ continuous: true, language: 'en-US' });
       }
-
       setState("recording");
       timerRef.current = setInterval(() => {
         setDuration((d) => d + 1);
       }, 1000);
     }
-  }, [enableBrowserTranscription]);
+  }, [enableBrowserTranscription, listening]);
 
   const resetRecording = useCallback(() => {
     stopTimer();
     if (mediaRecorderRef.current?.state !== "inactive") {
       mediaRecorderRef.current?.stop();
     }
-    shouldKeepRecognitionRunningRef.current = false;
-    recognitionRef.current?.stop();
-    recognitionRef.current = null;
+    if (listening) {
+      SpeechRecognition.stopListening();
+    }
+    resetTranscript();
+
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     if (audioUrl) URL.revokeObjectURL(audioUrl);
     setAudioUrl(null);
-    setLiveTranscript("");
     setDuration(0);
     setState("idle");
     chunksRef.current = [];
-  }, [audioUrl, stopTimer]);
+  }, [audioUrl, stopTimer, listening, resetTranscript]);
 
   return (
     <div className="space-y-5">
@@ -369,11 +291,16 @@ export default function AudioRecorder({
 
       {enableBrowserTranscription && (
         <div className="rounded-2xl border border-slate-200 bg-white/80 p-4">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
-            Browser transcript preview
-          </p>
+          <div className="flex items-center gap-2 mb-2">
+            <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
+              Live transcript
+            </p>
+            {listening && (
+              <span className="text-xs text-emerald-600">(Listening...)</span>
+            )}
+          </div>
           <p className="mt-2 min-h-16 whitespace-pre-wrap text-sm text-slate-700">
-            {liveTranscript || "Listening..."}
+            {transcript || (state === "recording" ? "Speak now..." : "Start recording to transcribe")}
           </p>
         </div>
       )}
