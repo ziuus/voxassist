@@ -166,7 +166,7 @@ export default function DashboardClient({ recordings }: DashboardClientProps) {
         </motion.div>
       </motion.section>
 
-      <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+      <section>
         <motion.div
           className="liquid-glass rounded-3xl p-6 sm:p-8"
           initial={{ opacity: 0, y: 16 }}
@@ -215,7 +215,7 @@ export default function DashboardClient({ recordings }: DashboardClientProps) {
             </div>
           ) : (
             <motion.div
-              className="mt-8 grid gap-5 sm:grid-cols-2"
+              className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
               variants={staggerParent}
               initial="hidden"
               animate="show"
@@ -233,39 +233,6 @@ export default function DashboardClient({ recordings }: DashboardClientProps) {
               ))}
             </motion.div>
           )}
-        </motion.div>
-
-        <motion.div
-          className="liquid-glass rounded-3xl p-6 sm:p-8"
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.45, delay: 0.05 }}
-        >
-          <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Flow</p>
-          <h3 className="mt-3 text-2xl font-semibold text-slate-900">Pipeline</h3>
-          <div className="mt-6 space-y-4">
-            {[
-              { title: "Capture" },
-              { title: "Transcribe" },
-              { title: "Generate" },
-              { title: "Sign" },
-            ].map((item, idx) => (
-              <motion.div
-                key={item.title}
-                className="rounded-2xl border border-slate-100 bg-white/85 p-4 shadow-soft"
-                initial={{ opacity: 0, x: 8 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: 0.06 * idx }}
-              >
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-slate-900">{item.title}</p>
-                  <span className="text-xs text-emerald-600 font-semibold">Active</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
         </motion.div>
       </section>
     </div>

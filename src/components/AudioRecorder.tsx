@@ -30,11 +30,13 @@ export default function AudioRecorder({
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const transcriptRef = useRef<string>("");
 
   const {
     transcript,
@@ -42,6 +44,16 @@ export default function AudioRecorder({
     resetTranscript,
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition();
+
+  // Client-side only
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Keep transcript ref updated
+  useEffect(() => {
+    transcriptRef.current = transcript;
+  }, [transcript]);
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) {
@@ -66,6 +78,7 @@ export default function AudioRecorder({
           setError("Browser doesn't support speech recognition. Use Chrome or Edge.");
           return;
         }
+        console.log("[AudioRecorder] Starting Speech Recognition...");
         SpeechRecognition.startListening({ continuous: true, language: 'en-US' });
       }
 
@@ -90,8 +103,11 @@ export default function AudioRecorder({
 
         if (enableBrowserTranscription) {
           SpeechRecognition.stopListening();
-          if (onTranscriptReady && transcript) {
-            onTranscriptReady(transcript);
+          // Use ref to get the latest transcript value
+          const finalTranscript = transcriptRef.current;
+          console.log("[AudioRecorder] Final transcript:", finalTranscript);
+          if (onTranscriptReady && finalTranscript) {
+            onTranscriptReady(finalTranscript);
           }
         }
 
@@ -289,7 +305,7 @@ export default function AudioRecorder({
         </div>
       )}
 
-      {enableBrowserTranscription && (
+      {mounted && enableBrowserTranscription && (
         <div className="rounded-2xl border border-slate-200 bg-white/80 p-4">
           <div className="flex items-center gap-2 mb-2">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AudioRecorder from "@/components/AudioRecorder";
 
@@ -8,6 +8,7 @@ type InputMethod = "record" | "upload";
 type TranscriptionMode = "server" | "browser";
 
 function getDefaultTranscriptionMode(): TranscriptionMode {
+  if (typeof window === "undefined") return "browser"; // Default for SSR
   const configured = process.env.NEXT_PUBLIC_DEFAULT_TRANSCRIPTION_MODE;
   if (configured === "server") {
     return "server";
@@ -16,33 +17,40 @@ function getDefaultTranscriptionMode(): TranscriptionMode {
 }
 
 function isBrowserTranscriptionSupported(): boolean {
-  if (typeof window === "undefined") return false;
+  if (typeof window === "undefined") return true; // Assume supported during SSR
   return typeof WebAssembly !== "undefined";
 }
 
 export default function NewRecordingPage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [inputMethod, setInputMethod] = useState<InputMethod>("record");
   const [title, setTitle] = useState("");
   const [patientName, setPatientName] = useState("");
   const [doctorName, setDoctorName] = useState("");
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [browserTranscript, setBrowserTranscript] = useState("");
-  const [transcriptionMode, setTranscriptionMode] =
-    useState<TranscriptionMode>(() => {
-      if (!isBrowserTranscriptionSupported()) return "server";
-      return getDefaultTranscriptionMode();
-    });
+  const [transcriptionMode, setTranscriptionMode] = useState<TranscriptionMode>("browser");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [browserSupported] = useState(isBrowserTranscriptionSupported());
+  const [browserSupported, setBrowserSupported] = useState(true);
+
+  // Client-side initialization
+  useEffect(() => {
+    setMounted(true);
+    setBrowserSupported(isBrowserTranscriptionSupported());
+    setTranscriptionMode(
+      isBrowserTranscriptionSupported() ? getDefaultTranscriptionMode() : "server"
+    );
+  }, []);
 
   const handleRecordingComplete = useCallback((blob: Blob) => {
     setAudioBlob(blob);
   }, []);
 
   const handleTranscriptReady = useCallback((transcript: string) => {
+    console.log("[NewRecording] Transcript ready:", transcript);
     setBrowserTranscript(transcript);
   }, []);
 
@@ -73,6 +81,10 @@ export default function NewRecordingPage() {
       formData.append("title", title || "Untitled Recording");
       if (patientName) formData.append("patientName", patientName);
       if (doctorName) formData.append("doctorName", doctorName);
+      
+      console.log("[NewRecording] Submitting with transcript:", browserTranscript);
+      console.log("[NewRecording] Transcription mode:", transcriptionMode);
+      
       // Always require local transcription - no server fallback
       if (!browserTranscript.trim() && transcriptionMode === "browser") {
         setError("Please enable transcription and speak during recording.");
@@ -239,7 +251,7 @@ export default function NewRecordingPage() {
                 onTranscriptReady={handleTranscriptReady}
               />
 
-              {transcriptionMode === "browser" && (
+              {mounted && transcriptionMode === "browser" && (
                 <p className="text-xs text-slate-500">
                   Browser transcription using Web Speech API. Works in Chrome/Edge. Real-time, no downloads.
                 </p>
