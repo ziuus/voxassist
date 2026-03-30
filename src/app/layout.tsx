@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Navigation from "@/components/Navigation";
-import { assertRuntimeConfig } from "@/lib/env";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
 import "./globals.css";
@@ -16,10 +15,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  if (process.env.NODE_ENV === "production") {
-    assertRuntimeConfig({ strict: true });
-  }
-
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="antialiased min-h-screen">

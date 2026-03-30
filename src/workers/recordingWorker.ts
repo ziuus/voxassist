@@ -2,11 +2,12 @@ import IORedis from "ioredis";
 import { Worker } from "bullmq";
 import { processReportJob, processTranscriptionJob } from "@/lib/recordingJobs";
 import { RECORDING_QUEUE_NAME } from "@/lib/queue";
-import { assertRuntimeConfig } from "@/lib/env";
+import { getRuntimeConfig } from "@/lib/env";
 
-const runtimeConfig = assertRuntimeConfig({ strict: true });
+const runtimeConfig = getRuntimeConfig();
 if (!runtimeConfig.redisUrl) {
-  throw new Error("REDIS_URL is required to start recording worker");
+  console.error("REDIS_URL is required to start recording worker");
+  process.exit(1);
 }
 
 const connection = new IORedis(runtimeConfig.redisUrl, {
