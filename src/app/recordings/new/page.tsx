@@ -9,6 +9,21 @@ type TranscriptionMode = "server" | "browser";
 
 function getDefaultTranscriptionMode(): TranscriptionMode {
   if (typeof window === "undefined") return "browser"; // Default for SSR
+  
+  // Check localStorage for saved preference
+  try {
+    const stored = localStorage.getItem("voxassist_settings");
+    if (stored) {
+      const settings = JSON.parse(stored);
+      if (settings.transcriptionMode) {
+        return settings.transcriptionMode;
+      }
+    }
+  } catch (err) {
+    console.error("Failed to load settings:", err);
+  }
+  
+  // Fallback to env var
   const configured = process.env.NEXT_PUBLIC_DEFAULT_TRANSCRIPTION_MODE;
   if (configured === "server") {
     return "server";
@@ -43,6 +58,22 @@ export default function NewRecordingPage() {
     setTranscriptionMode(
       isBrowserTranscriptionSupported() ? getDefaultTranscriptionMode() : "server"
     );
+    
+    // Load default names from settings
+    try {
+      const stored = localStorage.getItem("voxassist_settings");
+      if (stored) {
+        const settings = JSON.parse(stored);
+        if (settings.defaultDoctorName) {
+          setDoctorName(settings.defaultDoctorName);
+        }
+        if (settings.defaultPatientName) {
+          setPatientName(settings.defaultPatientName);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load default names:", err);
+    }
   }, []);
 
   const handleRecordingComplete = useCallback((blob: Blob) => {

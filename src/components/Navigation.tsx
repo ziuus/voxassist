@@ -10,6 +10,7 @@ export default function Navigation() {
     { href: "/", label: "Landing" },
     { href: "/dashboard", label: "Dashboard" },
     { href: "/recordings/new", label: "New Recording" },
+    { href: "/settings", label: "Settings" },
   ];
 
   const isActive = (href: string) => {
