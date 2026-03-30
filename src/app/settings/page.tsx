@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTheme } from "next-themes";
 
 type TranscriptionMode = "server" | "browser";
 
@@ -49,6 +50,7 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(getStoredSettings());
   const [saved, setSaved] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     setMounted(true);
@@ -268,6 +270,63 @@ export default function SettingsPage() {
               placeholder="Leave empty for manual entry"
               className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none ring-teal-300 transition focus:ring-2"
             />
+          </div>
+        </div>
+      </motion.section>
+
+      <motion.section
+        className="liquid-glass rounded-3xl p-6 sm:p-8 space-y-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.35 }}
+      >
+        <div>
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Appearance</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Customize the look and feel
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              Theme
+            </label>
+            <div className="flex gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2">
+              <button
+                type="button"
+                onClick={() => setTheme("light")}
+                className={`flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                  theme === "light"
+                    ? "bg-slate-900 text-white shadow-soft"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                }`}
+              >
+                Light
+              </button>
+              <button
+                type="button"
+                onClick={() => setTheme("dark")}
+                className={`flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                  theme === "dark"
+                    ? "bg-slate-900 text-white shadow-soft dark:bg-slate-700"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                }`}
+              >
+                Dark
+              </button>
+              <button
+                type="button"
+                onClick={() => setTheme("system")}
+                className={`flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                  theme === "system"
+                    ? "bg-slate-900 text-white shadow-soft dark:bg-slate-700"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                }`}
+              >
+                System
+              </button>
+            </div>
           </div>
         </div>
       </motion.section>

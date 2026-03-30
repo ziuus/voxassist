@@ -5,6 +5,20 @@ const appRoot = __dirname;
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: appRoot,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.googleusercontent.com",
+        pathname: "/**",
+      },
+    ],
+  },
   turbopack: {
     root: appRoot,
     resolveAlias: {

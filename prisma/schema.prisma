@@ -7,6 +7,54 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  recordings    Recording[]
+  patients      Patient[]
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
 enum RecordingStatus {
   pending
   transcribing
@@ -18,17 +66,22 @@ enum RecordingStatus {
 
 model Patient {
   id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String?     @db.ObjectId
+  user       User?       @relation(fields: [userId], references: [id])
   fullName   String
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   recordings Recording[]
 
   @@index([fullName])
+  @@index([userId])
 }
 
 model Recording {
   id               String          @id @default(auto()) @map("_id") @db.ObjectId
   externalId       String          @unique
+  userId           String?         @db.ObjectId
+  user             User?           @relation(fields: [userId], references: [id])
   title            String
   patientName      String?
   doctorName       String?
@@ -49,4 +102,5 @@ model Recording {
   @@index([createdAt(sort: Desc)])
   @@index([status])
   @@index([patientId])
+  @@index([userId])
 }
