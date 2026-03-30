@@ -94,30 +94,30 @@ export default function DashboardClient({ recordings }: DashboardClientProps) {
         <motion.div className="space-y-8 relative" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
           <motion.div
             style={{ y: orbitY, x: orbitX }}
-            className="pointer-events-none absolute -top-16 -left-12 h-48 w-48 rounded-full bg-emerald-200/50 blur-3xl"
+            className="pointer-events-none absolute -top-16 -left-12 h-48 w-48 rounded-full bg-emerald-200/50 dark:bg-emerald-500/20 blur-3xl"
           />
-          <div className="inline-flex items-center gap-3 rounded-full border border-emerald-200/70 bg-white/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-emerald-700 shadow-soft relative z-10">
+          <div className="inline-flex items-center gap-3 rounded-full border border-emerald-200/70 dark:border-emerald-700/50 bg-white/80 dark:bg-slate-800/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-emerald-700 dark:text-emerald-400 shadow-soft relative z-10">
             Live Workspace
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
           </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold leading-tight text-slate-900 relative z-10">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold leading-tight text-slate-900 dark:text-white relative z-10">
             Your recordings,
             <span className="text-gradient"> streamlined.</span>
           </h1>
-          <p className="text-sm text-slate-500 max-w-2xl relative z-10">
+          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-2xl relative z-10">
             Minimal, fast, and review-first.
           </p>
           <div className="flex flex-wrap gap-3 relative z-10">
             <Link
               href="/recordings/new"
-              className="inline-flex items-center gap-3 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-slate-800 hover:-translate-y-0.5"
+              className="inline-flex items-center gap-3 rounded-full bg-slate-900 dark:bg-white px-6 py-3 text-sm font-semibold text-white dark:text-slate-900 shadow-soft transition hover:bg-slate-800 dark:hover:bg-slate-100 hover:-translate-y-0.5"
             >
-              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-300" />
+              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-300 dark:bg-emerald-500" />
               Start a live recording
             </Link>
             <Link
               href="/recordings/new"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-white hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 transition hover:bg-white dark:hover:bg-slate-800 hover:-translate-y-0.5"
             >
               Upload existing audio
             </Link>
@@ -133,12 +133,12 @@ export default function DashboardClient({ recordings }: DashboardClientProps) {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-slate-400">
+              <p className="text-xs uppercase tracking-[0.35em] text-slate-400 dark:text-slate-500">
                 Today
               </p>
-              <p className="text-2xl font-semibold text-slate-900">Signal board</p>
+              <p className="text-2xl font-semibold text-slate-900 dark:text-white">Signal board</p>
             </div>
-            <div className="h-12 w-12 rounded-2xl bg-emerald-500/15 text-emerald-700 flex items-center justify-center">
+            <div className="h-12 w-12 rounded-2xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 flex items-center justify-center">
               <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v9m0 0l3-3m-3 3l-3-3m8 6a5 5 0 11-10 0" />
               </svg>
@@ -147,19 +147,19 @@ export default function DashboardClient({ recordings }: DashboardClientProps) {
 
           <div className="mt-6 grid grid-cols-2 gap-4">
             {[
-              { label: "Total Sessions", value: stats.total, colorClass: "text-slate-900" },
-              { label: "Reports Signed", value: stats.completed, colorClass: "text-emerald-600" },
-              { label: "Transcripts Ready", value: stats.transcribed, colorClass: "text-blue-600" },
-              { label: "In Progress", value: stats.pending, colorClass: "text-amber-600" },
+              { label: "Total Sessions", value: stats.total, colorClass: "text-slate-900 dark:text-white" },
+              { label: "Reports Signed", value: stats.completed, colorClass: "text-emerald-600 dark:text-emerald-400" },
+              { label: "Transcripts Ready", value: stats.transcribed, colorClass: "text-blue-600 dark:text-blue-400" },
+              { label: "In Progress", value: stats.pending, colorClass: "text-amber-600 dark:text-amber-400" },
             ].map((stat) => (
               <motion.div
                 key={stat.label}
-                className="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-soft"
+                className="rounded-2xl border border-white/80 dark:border-slate-700/50 bg-white/85 dark:bg-slate-800/85 p-4 shadow-soft"
                 whileHover={{ y: -3, scale: 1.03, rotateX: 2 }}
                 transition={{ type: "spring", stiffness: 320, damping: 24 }}
               >
                 <div className={`text-3xl font-semibold ${stat.colorClass}`}>{stat.value}</div>
-                <div className="mt-1 text-xs font-medium text-slate-500">{stat.label}</div>
+                <div className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -176,11 +176,11 @@ export default function DashboardClient({ recordings }: DashboardClientProps) {
         >
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-semibold text-slate-900">Recent recordings</h2>
+              <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Recent recordings</h2>
             </div>
             <Link
               href="/recordings/new"
-              className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-soft transition hover:bg-slate-800"
+              className="inline-flex items-center gap-2 rounded-full bg-slate-900 dark:bg-white px-4 py-2 text-sm font-semibold text-white dark:text-slate-900 shadow-soft transition hover:bg-slate-800 dark:hover:bg-slate-100"
             >
               New recording
             </Link>
@@ -191,12 +191,12 @@ export default function DashboardClient({ recordings }: DashboardClientProps) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search recordings"
-              className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-sm text-slate-700 outline-none ring-teal-300 transition focus:ring-2"
+              className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-800/90 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 outline-none ring-teal-300 dark:ring-teal-500 transition focus:ring-2"
             />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as "all" | RecordingStatus)}
-              className="rounded-2xl border border-slate-200 bg-white/90 px-3 py-2.5 text-sm text-slate-700 outline-none ring-teal-300 transition focus:ring-2"
+              className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-800/90 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 outline-none ring-teal-300 dark:ring-teal-500 transition focus:ring-2"
             >
               <option value="all">All statuses</option>
               <option value="pending">Pending</option>
@@ -209,9 +209,9 @@ export default function DashboardClient({ recordings }: DashboardClientProps) {
           </div>
 
           {filteredRecordings.length === 0 ? (
-            <div className="mt-8 rounded-3xl border border-dashed border-slate-200 bg-white/80 p-10 text-center">
-              <h3 className="text-lg font-semibold text-slate-900">No matching recordings</h3>
-              <p className="text-sm text-slate-500 mt-2">Try another filter.</p>
+            <div className="mt-8 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 p-10 text-center">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">No matching recordings</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">Try another filter.</p>
             </div>
           ) : (
             <motion.div

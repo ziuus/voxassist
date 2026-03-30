@@ -9,28 +9,28 @@ const statusConfig: Record<
   Recording["status"],
   { label: string; color: string; bg: string }
 > = {
-  pending: { label: "Pending", color: "text-yellow-700", bg: "bg-yellow-100" },
+  pending: { label: "Pending", color: "text-yellow-700 dark:text-yellow-400", bg: "bg-yellow-100 dark:bg-yellow-900/30" },
   transcribing: {
     label: "Transcribing…",
-    color: "text-blue-700",
-    bg: "bg-blue-100",
+    color: "text-blue-700 dark:text-blue-400",
+    bg: "bg-blue-100 dark:bg-blue-900/30",
   },
   transcribed: {
     label: "Transcribed",
-    color: "text-emerald-700",
-    bg: "bg-emerald-100",
+    color: "text-emerald-700 dark:text-emerald-400",
+    bg: "bg-emerald-100 dark:bg-emerald-900/30",
   },
   generating_report: {
     label: "Generating Report…",
-    color: "text-amber-700",
-    bg: "bg-amber-100",
+    color: "text-amber-700 dark:text-amber-400",
+    bg: "bg-amber-100 dark:bg-amber-900/30",
   },
   completed: {
     label: "Report Ready",
-    color: "text-emerald-700",
-    bg: "bg-emerald-100",
+    color: "text-emerald-700 dark:text-emerald-400",
+    bg: "bg-emerald-100 dark:bg-emerald-900/30",
   },
-  error: { label: "Error", color: "text-red-700", bg: "bg-red-100" },
+  error: { label: "Error", color: "text-red-700 dark:text-red-400", bg: "bg-red-100 dark:bg-red-900/30" },
 };
 
 export default function RecordingCard({ recording }: RecordingCardProps) {
@@ -45,13 +45,13 @@ export default function RecordingCard({ recording }: RecordingCardProps) {
 
   return (
     <Link href={`/recordings/${recording.id}`}>
-      <div className="group h-full rounded-3xl border border-white/80 bg-white/85 p-5 shadow-soft transition-all hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg">
+      <div className="group h-full rounded-3xl border border-white/80 dark:border-slate-700/50 bg-white/85 dark:bg-slate-800/85 p-5 shadow-soft transition-all hover:-translate-y-1 hover:border-emerald-200 dark:hover:border-emerald-700 hover:shadow-lg">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h3 className="text-lg font-semibold text-slate-900 truncate">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white truncate">
               {recording.title}
             </h3>
-            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs font-medium text-slate-500">
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs font-medium text-slate-500 dark:text-slate-400">
               {recording.patientName && (
                 <span className="flex items-center gap-1">
                   <svg
@@ -89,7 +89,7 @@ export default function RecordingCard({ recording }: RecordingCardProps) {
                 </span>
               )}
             </div>
-            <p className="mt-2 text-xs text-slate-400">{date}</p>
+            <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">{date}</p>
           </div>
           <span
             className={`flex-shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold ${status.bg} ${status.color}`}
@@ -99,14 +99,14 @@ export default function RecordingCard({ recording }: RecordingCardProps) {
         </div>
 
         {recording.report?.diagnosis && (
-          <p className="mt-4 text-sm text-slate-600 line-clamp-2 border-t border-slate-100 pt-3">
-            <span className="font-semibold text-slate-800">Diagnosis:</span>{" "}
+          <p className="mt-4 text-sm text-slate-600 dark:text-slate-400 line-clamp-2 border-t border-slate-100 dark:border-slate-700 pt-3">
+            <span className="font-semibold text-slate-800 dark:text-slate-200">Diagnosis:</span>{" "}
             {recording.report.diagnosis}
           </p>
         )}
 
         {recording.errorMessage && (
-          <p className="mt-2 text-xs text-red-600 truncate">
+          <p className="mt-2 text-xs text-red-600 dark:text-red-400 truncate">
             {recording.errorMessage}
           </p>
         )}

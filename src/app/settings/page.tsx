@@ -87,7 +87,7 @@ export default function SettingsPage() {
   if (!mounted) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-slate-500">Loading settings...</div>
+        <div className="text-slate-500 dark:text-slate-400">Loading settings...</div>
       </div>
     );
   }
@@ -101,8 +101,8 @@ export default function SettingsPage() {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-semibold text-slate-900">Settings</h1>
-            <p className="text-sm text-slate-500 mt-2">
+            <h1 className="text-4xl font-semibold text-slate-900 dark:text-white">Settings</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
               Configure VoxAssist to match your workflow
             </p>
           </div>
@@ -110,7 +110,7 @@ export default function SettingsPage() {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-sm text-emerald-600 font-semibold"
+              className="text-sm text-emerald-600 dark:text-emerald-400 font-semibold"
             >
               ✓ Saved
             </motion.div>
@@ -125,18 +125,18 @@ export default function SettingsPage() {
         transition={{ duration: 0.4, delay: 0.1 }}
       >
         <div>
-          <h2 className="text-xl font-semibold text-slate-900">Transcription</h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Transcription</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Choose how audio should be transcribed
           </p>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Default Transcription Mode
             </label>
-            <div className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-2">
+            <div className="flex gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2">
               <button
                 type="button"
                 onClick={() =>
@@ -144,8 +144,8 @@ export default function SettingsPage() {
                 }
                 className={`flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition ${
                   settings.transcriptionMode === "browser"
-                    ? "bg-slate-900 text-white shadow-soft"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-soft"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 <div className="text-left">
@@ -162,8 +162,8 @@ export default function SettingsPage() {
                 }
                 className={`flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition ${
                   settings.transcriptionMode === "server"
-                    ? "bg-slate-900 text-white shadow-soft"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-soft"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 <div className="text-left">
@@ -185,15 +185,15 @@ export default function SettingsPage() {
         transition={{ duration: 0.4, delay: 0.2 }}
       >
         <div>
-          <h2 className="text-xl font-semibold text-slate-900">API Configuration</h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">API Configuration</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             API keys for external services
           </p>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Google Gemini API Key
             </label>
             <div className="relative">
@@ -204,23 +204,23 @@ export default function SettingsPage() {
                   setSettings({ ...settings, apiKey: e.target.value })
                 }
                 placeholder="Enter your API key"
-                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 pr-24 text-sm text-slate-700 outline-none ring-teal-300 transition focus:ring-2"
+                className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-800/90 px-4 py-3 pr-24 text-sm text-slate-700 dark:text-slate-300 outline-none ring-teal-300 dark:ring-teal-500 transition focus:ring-2"
               />
               <button
                 type="button"
                 onClick={() => setShowApiKey(!showApiKey)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition"
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition"
               >
                 {showApiKey ? "Hide" : "Show"}
               </button>
             </div>
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
               Required for Server AI transcription and report generation.{" "}
               <a
                 href="https://aistudio.google.com/app/apikey"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-emerald-600 hover:underline"
+                className="text-emerald-600 dark:text-emerald-400 hover:underline"
               >
                 Get API key →
               </a>
@@ -236,15 +236,15 @@ export default function SettingsPage() {
         transition={{ duration: 0.4, delay: 0.3 }}
       >
         <div>
-          <h2 className="text-xl font-semibold text-slate-900">Defaults</h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Defaults</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Pre-fill forms with common values
           </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Default Doctor Name
             </label>
             <input
@@ -254,11 +254,11 @@ export default function SettingsPage() {
                 setSettings({ ...settings, defaultDoctorName: e.target.value })
               }
               placeholder="Dr. Smith"
-              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none ring-teal-300 transition focus:ring-2"
+              className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-800/90 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 outline-none ring-teal-300 dark:ring-teal-500 transition focus:ring-2"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Default Patient Name
             </label>
             <input
@@ -268,7 +268,7 @@ export default function SettingsPage() {
                 setSettings({ ...settings, defaultPatientName: e.target.value })
               }
               placeholder="Leave empty for manual entry"
-              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none ring-teal-300 transition focus:ring-2"
+              className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-800/90 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 outline-none ring-teal-300 dark:ring-teal-500 transition focus:ring-2"
             />
           </div>
         </div>
@@ -338,19 +338,19 @@ export default function SettingsPage() {
         transition={{ duration: 0.4, delay: 0.4 }}
       >
         <div>
-          <h2 className="text-xl font-semibold text-slate-900">Preferences</h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Preferences</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Customize your experience
           </p>
         </div>
 
         <div className="space-y-3">
-          <label className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-white/90 cursor-pointer hover:bg-white transition">
+          <label className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-800/90 cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition">
             <div>
-              <div className="text-sm font-medium text-slate-900">
+              <div className="text-sm font-medium text-slate-900 dark:text-white">
                 Auto-save transcripts
               </div>
-              <div className="text-xs text-slate-500 mt-1">
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Automatically save transcripts when recording stops
               </div>
             </div>
@@ -360,7 +360,7 @@ export default function SettingsPage() {
               onChange={(e) =>
                 setSettings({ ...settings, autoSave: e.target.checked })
               }
-              className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+              className="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-emerald-600 dark:text-emerald-500 focus:ring-emerald-500"
             />
           </label>
         </div>
@@ -375,7 +375,7 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={handleReset}
-          className="px-6 py-3 text-sm font-semibold text-slate-600 hover:text-slate-900 transition"
+          className="px-6 py-3 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition"
         >
           Reset to defaults
         </button>
@@ -383,14 +383,14 @@ export default function SettingsPage() {
           <button
             type="button"
             onClick={() => window.history.back()}
-            className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-soft transition hover:bg-slate-50"
+            className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 shadow-soft transition hover:bg-slate-50 dark:hover:bg-slate-700"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-slate-800"
+            className="rounded-full bg-slate-900 dark:bg-white px-6 py-3 text-sm font-semibold text-white dark:text-slate-900 shadow-soft transition hover:bg-slate-800 dark:hover:bg-slate-100"
           >
             Save changes
           </button>

@@ -153,32 +153,32 @@ export default function NewRecordingPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
-      <div className="glass rounded-3xl border border-white/70 p-8">
-        <p className="text-xs uppercase tracking-[0.3em] text-teal-600">
+      <div className="liquid-glass rounded-3xl p-8">
+        <p className="text-xs uppercase tracking-[0.3em] text-teal-600 dark:text-teal-400">
           New session
         </p>
-        <h1 className="text-3xl sm:text-4xl font-semibold text-slate-900">
+        <h1 className="text-3xl sm:text-4xl font-semibold text-slate-900 dark:text-white">
           Create a new recording
         </h1>
-        <p className="text-slate-600 mt-2">
+        <p className="text-slate-600 dark:text-slate-400 mt-2">
           Record a conversation or upload an existing audio file to generate a
           medical report.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <section className="glass rounded-3xl border border-white/70 p-6 space-y-4">
+        <section className="liquid-glass rounded-3xl p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
               Session details
             </h2>
-            <span className="text-xs font-medium text-slate-400">
+            <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
               Optional metadata
             </span>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Recording title
             </label>
             <input
@@ -186,13 +186,13 @@ export default function NewRecordingPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g., Follow-up consultation – John Doe"
-              className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-4 py-3 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-400"
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Patient name
               </label>
               <input
@@ -200,11 +200,11 @@ export default function NewRecordingPage() {
                 value={patientName}
                 onChange={(e) => setPatientName(e.target.value)}
                 placeholder="Patient name"
-                className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-4 py-3 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-400"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Doctor name
               </label>
               <input
@@ -212,21 +212,21 @@ export default function NewRecordingPage() {
                 value={doctorName}
                 onChange={(e) => setDoctorName(e.target.value)}
                 placeholder="Doctor name"
-                className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-4 py-3 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-400"
               />
             </div>
           </div>
         </section>
 
-        <section className="glass rounded-3xl border border-white/70 p-6 space-y-4">
+        <section className="liquid-glass rounded-3xl p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Audio input</h2>
-            <span className="text-xs text-slate-400">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Audio input</h2>
+            <span className="text-xs text-slate-400 dark:text-slate-500">
               Max 25MB per file
             </span>
           </div>
 
-          <div className="flex gap-2 rounded-full bg-white/80 p-1 shadow-soft">
+          <div className="flex gap-2 rounded-full bg-white/50 dark:bg-slate-800/50 p-1">
             {(["record", "upload"] as InputMethod[]).map((method) => (
               <button
                 key={method}
@@ -239,8 +239,8 @@ export default function NewRecordingPage() {
                 }}
                 className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${
                   inputMethod === method
-                    ? "bg-slate-900 text-white shadow"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 {method === "record" ? "Record audio" : "Upload file"}
@@ -250,11 +250,11 @@ export default function NewRecordingPage() {
 
           {inputMethod === "record" ? (
             <div className="space-y-4 py-4">
-              <div className="rounded-2xl border border-slate-200 bg-white/70 p-3">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 p-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
                   Transcription source
                 </p>
-                <div className="mt-2 flex gap-2 rounded-full bg-white p-1 shadow-soft">
+                <div className="mt-2 flex gap-2 rounded-full bg-white/50 dark:bg-slate-900/50 p-1">
                   {(["server", "browser"] as TranscriptionMode[]).map((mode) => (
                     <button
                       key={mode}
@@ -266,8 +266,8 @@ export default function NewRecordingPage() {
                       }}
                       className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${
                         transcriptionMode === mode
-                          ? "bg-slate-900 text-white shadow"
-                          : "text-slate-600 hover:text-slate-900"
+                          ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow"
+                          : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                       } ${mode === "browser" && !browserSupported ? "opacity-40 cursor-not-allowed" : ""}`}
                     >
                       {mode === "server" ? "Server AI" : "Offline (Local)"}
@@ -283,27 +283,27 @@ export default function NewRecordingPage() {
               />
 
               {mounted && transcriptionMode === "browser" && (
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Browser transcription using Web Speech API. Works in Chrome/Edge. Real-time, no downloads.
                 </p>
               )}
             </div>
           ) : (
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Audio file
               </label>
               <input
                 type="file"
                 accept="audio/*"
                 onChange={handleFileChange}
-                className="block w-full text-sm text-slate-500 file:mr-4 file:rounded-full file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-800"
+                className="block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:rounded-full file:border-0 file:bg-slate-900 dark:file:bg-white file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white dark:file:text-slate-900 hover:file:bg-slate-800 dark:hover:file:bg-slate-200"
               />
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 dark:text-slate-500">
                 Supported formats: MP3, WAV, M4A, WEBM, OGG, FLAC.
               </p>
               {uploadedFile && (
-                <p className="text-sm text-emerald-600">
+                <p className="text-sm text-emerald-600 dark:text-emerald-400">
                   Selected: {uploadedFile.name} (
                   {(uploadedFile.size / 1024 / 1024).toFixed(1)} MB)
                 </p>
@@ -313,7 +313,7 @@ export default function NewRecordingPage() {
         </section>
 
         {error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-400">
             {error}
           </div>
         )}
@@ -322,14 +322,14 @@ export default function NewRecordingPage() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="flex-1 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-white"
+            className="flex-1 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 transition hover:bg-white dark:hover:bg-slate-800"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-slate-800 disabled:bg-slate-400"
+            className="flex-1 rounded-2xl bg-slate-900 dark:bg-white px-4 py-3 text-sm font-semibold text-white dark:text-slate-900 shadow-soft transition hover:bg-slate-800 dark:hover:bg-slate-100 disabled:bg-slate-400 dark:disabled:bg-slate-600"
           >
             {isSubmitting ? "Saving…" : "Save & Continue"}
           </button>

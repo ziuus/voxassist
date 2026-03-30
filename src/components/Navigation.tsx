@@ -25,7 +25,7 @@ export default function Navigation() {
     ? [
         { href: "/dashboard", label: "Dashboard" },
         { href: "/recordings/new", label: "New Recording" },
-        { href: "/chat", label: "AI Search (RAG)" },
+        { href: "/chat", label: "Ask" },
         { href: "/settings", label: "Settings" },
       ]
     : [
