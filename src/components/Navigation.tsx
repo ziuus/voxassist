@@ -6,12 +6,20 @@ import { usePathname } from "next/navigation";
 export default function Navigation() {
   const pathname = usePathname();
 
-  const navItems = [
-    { href: "/", label: "Landing" },
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/recordings/new", label: "New Recording" },
-    { href: "/settings", label: "Settings" },
-  ];
+  const isLandingPage = pathname === "/";
+
+  // Different navigation based on where the user is
+  const navItems = isLandingPage
+    ? [
+        { href: "/", label: "Home" },
+        { href: "/dashboard", label: "Dashboard" },
+      ]
+    : [
+        { href: "/dashboard", label: "Dashboard" },
+        { href: "/recordings/new", label: "New Recording" },
+        { href: "/chat", label: "AI Search (RAG)" },
+        { href: "/settings", label: "Settings" },
+      ];
 
   const isActive = (href: string) => {
     if (href === "/") {
