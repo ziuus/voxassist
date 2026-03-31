@@ -5,16 +5,15 @@ import { authOptions } from '@/lib/auth';
 
 // GET: List all templates (optionally filter by user)
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
   const url = new URL(req.url);
   const onlyDefault = url.searchParams.get('default') === 'true';
 
   let where: any = {};
   if (onlyDefault) {
     where.isDefault = true;
-  } else if (session?.user?.email) {
-    // If user is logged in, show their templates and defaults
-    where.OR = [{ userId: undefined }, { isDefault: true }];
+  } else {
+    // Show all templates if not filtering by default
+    // (You can add user-based filtering here if needed)
   }
 
   const templates = await prisma.reportTemplate.findMany({ where });
