@@ -23,7 +23,7 @@ export function getPrismaClient(): PrismaClient | null {
   }
 
   const client = new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
+    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : [],
   });
 
   if (process.env.NODE_ENV !== "production") {
