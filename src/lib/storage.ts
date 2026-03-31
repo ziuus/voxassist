@@ -11,6 +11,17 @@ export const UPLOADS_DIR = path.join(DATA_DIR, "uploads");
 type PersistenceMode = "local" | "mongodb";
 
 let loggedMongoFallback = false;
+let loggedMongoQueryFailure = false;
+
+function logMongoQueryFailureOnce(error: unknown) {
+  if (loggedMongoQueryFailure) return;
+  loggedMongoQueryFailure = true;
+  const message = error instanceof Error ? error.message : String(error);
+  // eslint-disable-next-line no-console
+  console.error(
+    `MongoDB query failed. Falling back to local storage. Error: ${message}`
+  );
+}
 
 function getPersistenceMode(): PersistenceMode {
   const config = getRuntimeConfig();
@@ -105,13 +116,21 @@ export async function getAllRecordings(): Promise<Recording[]> {
     );
   }
 
-  const recordings = await prisma.recording.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  try {
+    const recordings = await prisma.recording.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
-  return recordings.map(mapMongoRecording);
+    return recordings.map(mapMongoRecording);
+  } catch (error) {
+    logMongoQueryFailureOnce(error);
+    const recordings = readRecordings();
+    return recordings.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
 }
 
 export async function getRecordingById(id: string): Promise<Recording | null> {
@@ -126,13 +145,19 @@ export async function getRecordingById(id: string): Promise<Recording | null> {
     return recordings.find((r) => r.id === id) ?? null;
   }
 
-  const recording = await prisma.recording.findUnique({
-    where: {
-      externalId: id,
-    },
-  });
+  try {
+    const recording = await prisma.recording.findUnique({
+      where: {
+        externalId: id,
+      },
+    });
 
-  return recording ? mapMongoRecording(recording) : null;
+    return recording ? mapMongoRecording(recording) : null;
+  } catch (error) {
+    logMongoQueryFailureOnce(error);
+    const recordings = readRecordings();
+    return recordings.find((r) => r.id === id) ?? null;
+  }
 }
 
 export async function saveRecording(recording: Recording): Promise<void> {
@@ -192,45 +217,57 @@ export async function saveRecording(recording: Recording): Promise<void> {
     }
   }
 
-  await prisma.recording.upsert({
-    where: {
-      externalId: recording.id,
-    },
-    update: {
-      title: recording.title,
-      patientName: normalizedPatientName,
-      doctorName: recording.doctorName,
-      date,
-      status: recording.status,
-      patientId,
-      audioFileName: recording.audioFileName,
-      audioStorageKey: recording.audioStorageKey,
-      audioMimeType: recording.audioMimeType,
-      duration: recording.duration,
-      transcript: recording.transcript,
-      report: recording.report as object | undefined,
-      errorMessage: recording.errorMessage,
-      updatedAt,
-    },
-    create: {
-      externalId: recording.id,
-      title: recording.title,
-      patientName: normalizedPatientName,
-      doctorName: recording.doctorName,
-      date,
-      status: recording.status,
-      patientId,
-      audioFileName: recording.audioFileName,
-      audioStorageKey: recording.audioStorageKey,
-      audioMimeType: recording.audioMimeType,
-      duration: recording.duration,
-      transcript: recording.transcript,
-      report: recording.report as object | undefined,
-      errorMessage: recording.errorMessage,
-      createdAt,
-      updatedAt,
-    },
-  });
+  try {
+    await prisma.recording.upsert({
+      where: {
+        externalId: recording.id,
+      },
+      update: {
+        title: recording.title,
+        patientName: normalizedPatientName,
+        doctorName: recording.doctorName,
+        date,
+        status: recording.status,
+        patientId,
+        audioFileName: recording.audioFileName,
+        audioStorageKey: recording.audioStorageKey,
+        audioMimeType: recording.audioMimeType,
+        duration: recording.duration,
+        transcript: recording.transcript,
+        report: recording.report as object | undefined,
+        errorMessage: recording.errorMessage,
+        updatedAt,
+      },
+      create: {
+        externalId: recording.id,
+        title: recording.title,
+        patientName: normalizedPatientName,
+        doctorName: recording.doctorName,
+        date,
+        status: recording.status,
+        patientId,
+        audioFileName: recording.audioFileName,
+        audioStorageKey: recording.audioStorageKey,
+        audioMimeType: recording.audioMimeType,
+        duration: recording.duration,
+        transcript: recording.transcript,
+        report: recording.report as object | undefined,
+        errorMessage: recording.errorMessage,
+        createdAt,
+        updatedAt,
+      },
+    });
+  } catch (error) {
+    logMongoQueryFailureOnce(error);
+    const recordings = readRecordings();
+    const index = recordings.findIndex((r) => r.id === recording.id);
+    if (index >= 0) {
+      recordings[index] = recording;
+    } else {
+      recordings.push(recording);
+    }
+    writeRecordings(recordings);
+  }
 }
 
 export async function deleteRecording(id: string): Promise<boolean> {
@@ -253,11 +290,21 @@ export async function deleteRecording(id: string): Promise<boolean> {
     return true;
   }
 
-  const deleted = await prisma.recording.deleteMany({
-    where: {
-      externalId: id,
-    },
-  });
+  try {
+    const deleted = await prisma.recording.deleteMany({
+      where: {
+        externalId: id,
+      },
+    });
 
-  return deleted.count > 0;
+    return deleted.count > 0;
+  } catch (error) {
+    logMongoQueryFailureOnce(error);
+    const recordings = readRecordings();
+    const index = recordings.findIndex((r) => r.id === id);
+    if (index < 0) return false;
+    recordings.splice(index, 1);
+    writeRecordings(recordings);
+    return true;
+  }
 }
