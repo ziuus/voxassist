@@ -9,7 +9,6 @@ export const metadata: Metadata = {
   description:
     "AI voice assistant for doctors that helps create reports from doctor-patient conversations",
   manifest: "/manifest.webmanifest",
-  themeColor: "#10b981",
   icons: {
     icon: [
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
@@ -17,6 +16,10 @@ export const metadata: Metadata = {
     ],
     apple: "/icons/apple-touch-icon.png",
   },
+};
+
+export const viewport = {
+  themeColor: "#10b981",
 };
 
 export default function RootLayout({
