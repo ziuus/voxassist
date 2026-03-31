@@ -4,12 +4,12 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
 // PATCH: Update a template
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, context: any) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
+  if (!session?.user?.email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const { id } = params;
+  const { id } = context.params;
   const body = await req.json();
   const { name, fields } = body;
   const template = await prisma.reportTemplate.update({
@@ -20,12 +20,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // DELETE: Delete a template
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: any) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
+  if (!session?.user?.email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const { id } = params;
+  const { id } = context.params;
   await prisma.reportTemplate.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }

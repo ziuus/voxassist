@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Button } from "@/components/ui/Button";
+
 
 interface ReportTemplate {
   id: string;
@@ -59,7 +59,12 @@ export default function ReportTemplatesPage() {
         <div>Loading...</div>
       ) : (
         <>
-          <Button onClick={() => setShowForm(true)} className="mb-4">New Template</Button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="mb-4 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
+          >
+            New Template
+          </button>
           <ul className="space-y-4">
             {templates.map((tpl) => (
               <li key={tpl.id} className="border rounded-lg p-4 flex flex-col gap-2">
@@ -99,8 +104,18 @@ export default function ReportTemplatesPage() {
               Set as default
             </label>
             <div className="flex gap-2">
-              <Button onClick={handleCreate}>Create</Button>
-              <Button variant="secondary" onClick={() => setShowForm(false)}>Cancel</Button>
+              <button
+                onClick={handleCreate}
+                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
+              >
+                Create
+              </button>
+              <button
+                onClick={() => setShowForm(false)}
+                className="px-4 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 transition"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

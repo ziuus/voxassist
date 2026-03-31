@@ -57,6 +57,7 @@ model User {
   sessions      Session[]
   recordings    Recording[]
   patients      Patient[]
+  reportTemplates ReportTemplate[]
 }
 
 model VerificationToken {
