@@ -35,7 +35,20 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
-  const error = searchParams.get("error");
+  const rawError = searchParams.get("error");
+  const error =
+    rawError && rawError !== "undefined" && rawError !== "null" ? rawError : null;
+
+  const errorMessage =
+    error === "Configuration"
+      ? "Google sign-in is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET."
+      : error === "OAuthSignin" || error === "OAuthCallback"
+        ? "Authentication failed. Please try again."
+        : error === "AccessDenied"
+          ? "Access denied. Please try a different account."
+          : error
+            ? `Error: ${error}`
+            : null;
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -122,16 +135,14 @@ function LoginContent() {
           </motion.div>
 
           {/* Error message */}
-          {error && (
+          {errorMessage && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               className="mb-6 p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
             >
               <p className="text-sm text-red-700 dark:text-red-400 text-center">
-                {error === "Callback" 
-                  ? "Authentication failed. Please try again."
-                  : `Error: ${error}`}
+                {errorMessage}
               </p>
             </motion.div>
           )}
