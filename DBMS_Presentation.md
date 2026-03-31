@@ -9,6 +9,7 @@
 
 ---
 
+
 ## 2. Features
 - Record conversations (browser mic)
 - Upload audio files (MP3, WAV, etc.)
@@ -17,6 +18,9 @@
 - Dashboard for managing recordings/reports
 - Live filtering and search
 - Retry failed processing
+- **Modern, cinematic UI/UX** with glassmorphism, Aurora backgrounds, and kinetic motion
+- **Drag-and-drop custom report template builder** for doctors
+- **Animated modals and beautiful feedback** for template management
 
 ---
 
@@ -87,7 +91,8 @@
 }
 ```
 
-**Doctors can create custom templates** by specifying the fields and order. The system provides default templates (e.g., SOAP, summary) for all users.
+
+**Doctors can create custom templates** with a modern drag-and-drop interface, animated modals, and real-time feedback. The system provides default templates (e.g., SOAP, summary) for all users. Templates can be visually reordered, edited, and set as default with a single click.
 
 ---
 
@@ -103,9 +108,10 @@
 
 ## 5. Workflow & Data Flow
 
+
 ### Step-by-step Workflow
 1. **Doctor logs in** (Google OAuth)
-2. **Doctor creates or selects a report template** (custom or default)
+2. **Doctor creates or selects a report template** using a modern, glassmorphic UI with drag-and-drop field ordering and animated modals
 3. **Doctor records or uploads audio** for a patient session
 4. **Audio is stored** (local or S3)
 5. **Transcription** is performed (browser or AI)
@@ -115,9 +121,10 @@
 9. **Doctor reviews/edits the report** if needed
 10. **Dashboard** displays all recordings, reports, and templates
 
+
 ### Example Workflow Diagram (Text)
 
-Doctor → [Login] → [Select/Create Template] → [Record/Upload Audio] → [Transcribe] → [Save Transcript] → [Generate Report (AI)] → [Save Report] → [Review/Edit] → [Dashboard]
+Doctor → [Login] → [Modern Template Builder (Drag/Drop, Modal)] → [Record/Upload Audio] → [Transcribe] → [Save Transcript] → [Generate Report (AI, Custom Fields)] → [Save Report] → [Review/Edit] → [Dashboard]
 
 ---
 
@@ -207,10 +214,12 @@ Doctor → [Login] → [Select/Create Template] → [Record/Upload Audio] → [T
 ---
 
 
+
 ## 10. Conclusion
 - Modern, scalable medical data assistant
 - Secure, structured, and AI-powered
-- Doctors can use default or custom report formats
+- Doctors can use default or custom report formats with a premium, cinematic UI
+- Drag-and-drop template builder and animated feedback for best-in-class UX
 - Extensible for future features (e.g., RAG, vector search, more template types)
 
 ---
