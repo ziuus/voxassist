@@ -10,7 +10,8 @@ export const dynamic = "force-dynamic";
 export default async function LandingPage() {
   const session = await getServerSession(authOptions);
   if (session) {
-    const referer = headers().get("referer") ?? "";
+    const hdrs = await headers();
+    const referer = hdrs.get("referer") ?? "";
     const cameFromLogin = referer.includes("/login");
     if (!referer || cameFromLogin) {
       redirect("/dashboard");
