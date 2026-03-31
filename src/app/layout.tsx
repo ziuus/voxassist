@@ -8,6 +8,15 @@ export const metadata: Metadata = {
   title: "VoxAssist – AI Medical Voice Assistant",
   description:
     "AI voice assistant for doctors that helps create reports from doctor-patient conversations",
+  manifest: "/manifest.webmanifest",
+  themeColor: "#10b981",
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/icons/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
