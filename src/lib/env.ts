@@ -8,6 +8,7 @@ type RuntimeConfig = {
   persistenceMode: PersistenceMode;
   audioStorageMode: AudioStorageMode;
   jobQueueEnabled: boolean;
+  forceLocalStorage: boolean;
   redisUrl?: string;
   googleApiKey?: string;
   openaiApiKey?: string;
@@ -65,6 +66,7 @@ export function getRuntimeConfig(): RuntimeConfig {
   const persistenceMode = parsePersistenceMode(prodEnabled);
   const audioStorageMode = parseAudioStorageMode(prodEnabled);
   const jobQueueEnabled = parseBoolean("ENABLE_JOB_QUEUE", false);
+  const forceLocalStorage = parseBoolean("DISABLE_MONGODB", false);
 
   return {
     prodEnabled,
@@ -72,6 +74,7 @@ export function getRuntimeConfig(): RuntimeConfig {
     persistenceMode,
     audioStorageMode,
     jobQueueEnabled,
+    forceLocalStorage,
     redisUrl: getEnv("REDIS_URL"),
     googleApiKey: getEnv("GOOGLE_API_KEY"),
     openaiApiKey: getEnv("OPENAI_API_KEY"),

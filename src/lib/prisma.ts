@@ -5,10 +5,20 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 let loggedMissingDatabaseUrl = false;
+let loggedMongoDisabled = false;
 
 export function getPrismaClient(): PrismaClient | null {
   if (globalForPrisma.prisma) {
     return globalForPrisma.prisma;
+  }
+
+  if (process.env.DISABLE_MONGODB === "true") {
+    if (!loggedMongoDisabled) {
+      // eslint-disable-next-line no-console
+      console.error("MongoDB access is disabled via DISABLE_MONGODB=true.");
+      loggedMongoDisabled = true;
+    }
+    return null;
   }
 
   if (!process.env.DATABASE_URL) {

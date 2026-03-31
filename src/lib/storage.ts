@@ -25,6 +25,9 @@ function logMongoQueryFailureOnce(error: unknown) {
 
 function getPersistenceMode(): PersistenceMode {
   const config = getRuntimeConfig();
+  if (config.forceLocalStorage) {
+    return "local";
+  }
   if (config.persistenceMode === "mongodb") {
     if (!config.databaseUrl || !getPrismaClient()) {
       if (!loggedMongoFallback) {
