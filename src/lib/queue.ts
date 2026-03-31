@@ -15,6 +15,8 @@ const globalForQueue = globalThis as unknown as {
   recordingQueue?: Queue<RecordingJobPayload>;
 };
 
+let loggedMissingRedis = false;
+
 function isQueueConfigured(): boolean {
   const config = getRuntimeConfig();
   return config.jobQueueEnabled && Boolean(config.redisUrl);
@@ -22,13 +24,27 @@ function isQueueConfigured(): boolean {
 
 function getRedisConnection(): IORedis | null {
   if (!isQueueConfigured()) {
+    if (getRuntimeConfig().jobQueueEnabled && !loggedMissingRedis) {
+      // eslint-disable-next-line no-console
+      console.error(
+        "ENABLE_JOB_QUEUE is true, but REDIS_URL is missing. Queueing is disabled."
+      );
+      loggedMissingRedis = true;
+    }
     return null;
   }
 
   if (!globalForQueue.redis) {
     const redisUrl = getRuntimeConfig().redisUrl;
     if (!redisUrl) {
-      throw new Error("REDIS_URL is required when ENABLE_JOB_QUEUE=true");
+      if (!loggedMissingRedis) {
+        // eslint-disable-next-line no-console
+        console.error(
+          "ENABLE_JOB_QUEUE is true, but REDIS_URL is missing. Queueing is disabled."
+        );
+        loggedMissingRedis = true;
+      }
+      return null;
     }
 
     globalForQueue.redis = new IORedis(redisUrl, {

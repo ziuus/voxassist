@@ -19,6 +19,7 @@ type RuntimeConfig = {
 const PLACEHOLDER_VALUES = new Set([
   "your_google_api_key_here",
   "your_openai_api_key_here",
+  "your_groq_api_key_here",
 ]);
 
 function parseBoolean(name: string, fallback: boolean): boolean {

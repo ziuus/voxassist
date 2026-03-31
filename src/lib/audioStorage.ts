@@ -27,18 +27,31 @@ interface TranscriptionFile {
 }
 
 let _s3Client: S3Client | null = null;
+let loggedS3Fallback = false;
 
 function getStorageMode(): StorageMode {
-  return getRuntimeConfig().audioStorageMode;
+  const config = getRuntimeConfig();
+  if (config.audioStorageMode === "s3") {
+    if (!config.awsS3Bucket || !config.awsS3Region) {
+      if (!loggedS3Fallback) {
+        // eslint-disable-next-line no-console
+        console.error(
+          "S3 storage was selected, but AWS_S3_BUCKET or AWS_S3_REGION is missing. Falling back to local storage."
+        );
+        loggedS3Fallback = true;
+      }
+      return "local";
+    }
+  }
+
+  return config.audioStorageMode;
 }
 
 function getS3Config() {
   const bucket = process.env.AWS_S3_BUCKET;
   const region = process.env.AWS_S3_REGION;
   if (!bucket || !region) {
-    throw new Error(
-      "S3 storage is enabled but AWS_S3_BUCKET or AWS_S3_REGION is missing"
-    );
+    throw new Error("S3 storage is enabled but AWS_S3_BUCKET or AWS_S3_REGION is missing");
   }
 
   return {

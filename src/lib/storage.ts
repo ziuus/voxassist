@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { Recording } from "./types";
-import { prisma } from "./prisma";
+import { getPrismaClient } from "./prisma";
 import { getRuntimeConfig } from "./env";
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -10,8 +10,24 @@ export const UPLOADS_DIR = path.join(DATA_DIR, "uploads");
 
 type PersistenceMode = "local" | "mongodb";
 
+let loggedMongoFallback = false;
+
 function getPersistenceMode(): PersistenceMode {
-  return getRuntimeConfig().persistenceMode;
+  const config = getRuntimeConfig();
+  if (config.persistenceMode === "mongodb") {
+    if (!config.databaseUrl || !getPrismaClient()) {
+      if (!loggedMongoFallback) {
+        // eslint-disable-next-line no-console
+        console.error(
+          "MongoDB persistence was selected, but DATABASE_URL is missing or Prisma failed to initialize. Falling back to local storage."
+        );
+        loggedMongoFallback = true;
+      }
+      return "local";
+    }
+  }
+
+  return config.persistenceMode;
 }
 
 function ensureDirectories() {
@@ -81,6 +97,14 @@ export async function getAllRecordings(): Promise<Recording[]> {
     );
   }
 
+  const prisma = getPrismaClient();
+  if (!prisma) {
+    const recordings = readRecordings();
+    return recordings.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
   const recordings = await prisma.recording.findMany({
     orderBy: {
       createdAt: "desc",
@@ -96,6 +120,12 @@ export async function getRecordingById(id: string): Promise<Recording | null> {
     return recordings.find((r) => r.id === id) ?? null;
   }
 
+  const prisma = getPrismaClient();
+  if (!prisma) {
+    const recordings = readRecordings();
+    return recordings.find((r) => r.id === id) ?? null;
+  }
+
   const recording = await prisma.recording.findUnique({
     where: {
       externalId: id,
@@ -107,6 +137,19 @@ export async function getRecordingById(id: string): Promise<Recording | null> {
 
 export async function saveRecording(recording: Recording): Promise<void> {
   if (getPersistenceMode() === "local") {
+    const recordings = readRecordings();
+    const index = recordings.findIndex((r) => r.id === recording.id);
+    if (index >= 0) {
+      recordings[index] = recording;
+    } else {
+      recordings.push(recording);
+    }
+    writeRecordings(recordings);
+    return;
+  }
+
+  const prisma = getPrismaClient();
+  if (!prisma) {
     const recordings = readRecordings();
     const index = recordings.findIndex((r) => r.id === recording.id);
     if (index >= 0) {
@@ -192,6 +235,16 @@ export async function saveRecording(recording: Recording): Promise<void> {
 
 export async function deleteRecording(id: string): Promise<boolean> {
   if (getPersistenceMode() === "local") {
+    const recordings = readRecordings();
+    const index = recordings.findIndex((r) => r.id === id);
+    if (index < 0) return false;
+    recordings.splice(index, 1);
+    writeRecordings(recordings);
+    return true;
+  }
+
+  const prisma = getPrismaClient();
+  if (!prisma) {
     const recordings = readRecordings();
     const index = recordings.findIndex((r) => r.id === id);
     if (index < 0) return false;
