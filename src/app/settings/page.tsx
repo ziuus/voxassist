@@ -8,8 +8,6 @@ type TranscriptionMode = "server" | "browser";
 
 interface Settings {
   transcriptionMode: TranscriptionMode;
-  apiKey: string;
-  autoSave: boolean;
   defaultPatientName: string;
   defaultDoctorName: string;
 }
@@ -20,8 +18,6 @@ function getStoredSettings(): Settings {
   if (typeof window === "undefined") {
     return {
       transcriptionMode: "browser",
-      apiKey: "",
-      autoSave: true,
       defaultPatientName: "",
       defaultDoctorName: "",
     };
@@ -38,8 +34,6 @@ function getStoredSettings(): Settings {
 
   return {
     transcriptionMode: "browser",
-    apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY || "",
-    autoSave: true,
     defaultPatientName: "",
     defaultDoctorName: "",
   };
@@ -49,7 +43,6 @@ export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
   const [settings, setSettings] = useState<Settings>(getStoredSettings());
   const [saved, setSaved] = useState(false);
-  const [showApiKey, setShowApiKey] = useState(false);
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
@@ -72,8 +65,6 @@ export default function SettingsPage() {
     if (confirm("Reset all settings to defaults?")) {
       const defaults: Settings = {
         transcriptionMode: "browser",
-        apiKey: "",
-        autoSave: true,
         defaultPatientName: "",
         defaultDoctorName: "",
       };
@@ -182,57 +173,6 @@ export default function SettingsPage() {
         className="liquid-glass rounded-3xl p-6 sm:p-8 space-y-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-      >
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">API Configuration</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            API keys for external services
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Google Gemini API Key
-            </label>
-            <div className="relative">
-              <input
-                type={showApiKey ? "text" : "password"}
-                value={settings.apiKey}
-                onChange={(e) =>
-                  setSettings({ ...settings, apiKey: e.target.value })
-                }
-                placeholder="Enter your API key"
-                className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-800/90 px-4 py-3 pr-24 text-sm text-slate-700 dark:text-slate-300 outline-none ring-teal-300 dark:ring-teal-500 transition focus:ring-2"
-              />
-              <button
-                type="button"
-                onClick={() => setShowApiKey(!showApiKey)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition"
-              >
-                {showApiKey ? "Hide" : "Show"}
-              </button>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-              Required for Server AI transcription and report generation.{" "}
-              <a
-                href="https://aistudio.google.com/app/apikey"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-emerald-600 dark:text-emerald-400 hover:underline"
-              >
-                Get API key →
-              </a>
-            </p>
-          </div>
-        </div>
-      </motion.section>
-
-      <motion.section
-        className="liquid-glass rounded-3xl p-6 sm:p-8 space-y-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.3 }}
       >
         <div>
@@ -328,41 +268,6 @@ export default function SettingsPage() {
               </button>
             </div>
           </div>
-        </div>
-      </motion.section>
-
-      <motion.section
-        className="liquid-glass rounded-3xl p-6 sm:p-8 space-y-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.4 }}
-      >
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Preferences</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Customize your experience
-          </p>
-        </div>
-
-        <div className="space-y-3">
-          <label className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-800/90 cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition">
-            <div>
-              <div className="text-sm font-medium text-slate-900 dark:text-white">
-                Auto-save transcripts
-              </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Automatically save transcripts when recording stops
-              </div>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.autoSave}
-              onChange={(e) =>
-                setSettings({ ...settings, autoSave: e.target.checked })
-              }
-              className="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-emerald-600 dark:text-emerald-500 focus:ring-emerald-500"
-            />
-          </label>
         </div>
       </motion.section>
 

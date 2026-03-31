@@ -8,21 +8,31 @@ import { getRuntimeConfig } from "./env";
 let _client: OpenAI | null = null;
 let _googleClient: GoogleGenerativeAI | null = null;
 
-type AiProvider = "google" | "openai";
+type AiProvider = "google" | "openai" | "groq";
 
-function getAiProvider(): AiProvider {
   return getRuntimeConfig().aiProvider;
 }
 
-function getClient(): OpenAI {
   if (!_client) {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey || apiKey === "your_openai_api_key_here") {
-      throw new Error(
-        "OPENAI_API_KEY is not configured. Please set it in your .env.local file."
-      );
+    const provider = getAiProvider();
+    let apiKey: string | undefined;
+    let baseURL: string | undefined;
+    if (provider === "groq") {
+      apiKey = process.env.OPENAI_API_KEY;
+      baseURL = process.env.OPENAI_BASE_URL || "https://api.groq.com/openai/v1";
+      if (!apiKey) {
+        throw new Error("OPENAI_API_KEY is not configured for Groq. Please set it in your .env.local file.");
+      }
+      _client = new OpenAI({ apiKey, baseURL });
+    } else {
+      apiKey = process.env.OPENAI_API_KEY;
+      if (!apiKey || apiKey === "your_openai_api_key_here") {
+        throw new Error(
+          "OPENAI_API_KEY is not configured. Please set it in your .env.local file."
+        );
+      }
+      _client = new OpenAI({ apiKey });
     }
-    _client = new OpenAI({ apiKey });
   }
   return _client;
 }
@@ -114,10 +124,10 @@ async function transcribeWithOpenAI(audioFilePath: string): Promise<string> {
   return transcription as unknown as string;
 }
 
-export async function transcribeAudio(audioFilePath: string): Promise<string> {
-  return getAiProvider() === "google"
-    ? transcribeWithGoogle(audioFilePath)
-    : transcribeWithOpenAI(audioFilePath);
+  const provider = getAiProvider();
+  if (provider === "google") return transcribeWithGoogle(audioFilePath);
+  // Both openai and groq use the OpenAI-compatible API
+  return transcribeWithOpenAI(audioFilePath);
 }
 
 async function generateReportWithOpenAI(
@@ -234,12 +244,12 @@ Required JSON shape:
   };
 }
 
-export async function generateMedicalReport(
   transcript: string,
   patientName?: string,
   doctorName?: string
 ): Promise<MedicalReport> {
-  return getAiProvider() === "google"
-    ? generateReportWithGoogle(transcript, patientName, doctorName)
-    : generateReportWithOpenAI(transcript, patientName, doctorName);
+  const provider = getAiProvider();
+  if (provider === "google") return generateReportWithGoogle(transcript, patientName, doctorName);
+  // Both openai and groq use the OpenAI-compatible API
+  return generateReportWithOpenAI(transcript, patientName, doctorName);
 }

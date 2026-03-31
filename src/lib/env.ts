@@ -1,4 +1,4 @@
-type AiProvider = "google" | "openai";
+type AiProvider = "google" | "openai" | "groq";
 type PersistenceMode = "local" | "mongodb";
 type AudioStorageMode = "local" | "s3";
 
@@ -32,6 +32,7 @@ function parseBoolean(name: string, fallback: boolean): boolean {
 function parseAiProvider(): AiProvider {
   const raw = process.env.AI_PROVIDER?.toLowerCase();
   if (raw === "openai") return "openai";
+  if (raw === "groq") return "groq";
   return "google"; // default
 }
 
