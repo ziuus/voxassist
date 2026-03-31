@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import { prisma } from "../src/lib/prisma";
+import { getPrismaClient } from "../src/lib/prisma";
 
 type LegacyMedicalReport = {
   patientName?: string;
@@ -70,6 +70,13 @@ function toRecordingStatus(status: LegacyRecording["status"]): LegacyRecording["
 }
 
 async function run() {
+  const prisma = getPrismaClient();
+  if (!prisma) {
+    console.error("DATABASE_URL is required to run this migration.");
+    process.exitCode = 1;
+    return;
+  }
+
   let parsed: LegacyRecording[] = [];
 
   try {
@@ -150,5 +157,8 @@ run()
     process.exitCode = 1;
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    const prisma = getPrismaClient();
+    if (prisma) {
+      await prisma.$disconnect();
+    }
   });

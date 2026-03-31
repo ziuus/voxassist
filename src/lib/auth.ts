@@ -1,11 +1,17 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "@/lib/prisma";
+import { getPrismaClient } from "@/lib/prisma";
 import type { NextAuthOptions } from "next-auth";
 
+const prisma = getPrismaClient();
+if (!prisma) {
+  // eslint-disable-next-line no-console
+  console.error("Auth database is not configured. Prisma adapter is disabled.");
+}
+
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as any,
+  adapter: prisma ? (PrismaAdapter(prisma) as any) : undefined,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
