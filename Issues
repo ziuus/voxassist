@@ -1,0 +1,35 @@
+# Using GitHub Issues for Community Exchange
+
+Welcome to our community! GitHub Issues is a great way to report bugs, request features, or ask questions.
+
+## Issue Types
+1. **Bug Reports**: When you encounter a problem, please provide details to help us understand the issue.
+2. **Feature Requests**: We welcome new ideas! Please describe the feature you would like to see.
+3. **Questions**: If you have a question, feel free to ask here.
+
+## Required Info Templates
+### Bug Report Template
+- **Description**: What is the bug?
+- **Steps to Reproduce**: How can we reproduce the bug?
+- **Expected Behavior**: What did you expect to happen?
+- **Actual Behavior**: What actually happened?
+
+### Feature Request Template
+- **Feature Description**: What is the feature?
+- **Use Case**: Why do you need this feature?
+
+## Labels
+We use labels to categorize issues. Common labels include:
+- `bug`
+- `feature`
+- `question`
+
+## Response Expectations
+- Expect acknowledgment of your issue within 48 hours.
+- Resolution timelines vary based on complexity.
+
+## Code of Conduct Reminder
+Please adhere to our [Code of Conduct](link_to_code_of_conduct) when interacting with the community.
+
+## Security Disclosure
+If you discover a security vulnerability, please disclose it responsibly by contacting us directly at [security@organization.com](mailto:security@organization.com).
