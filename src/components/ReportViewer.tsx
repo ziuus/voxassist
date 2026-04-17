@@ -1,4 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import { MedicalReport } from "@/lib/types";
+import { EHRSystem, formatReportForEHR } from "@/lib/smartCopy";
+import { Copy, Check, ChevronDown } from "lucide-react";
 
 interface ReportViewerProps {
   report: MedicalReport;
@@ -33,6 +38,17 @@ function ReportField({ label, value }: ReportSection) {
 }
 
 export default function ReportViewer({ report }: ReportViewerProps) {
+  const [copied, setCopied] = useState(false);
+  const [showEHRMenu, setShowEHRMenu] = useState(false);
+
+  const handleSmartCopy = (system: EHRSystem) => {
+    const formatted = formatReportForEHR(report, system);
+    navigator.clipboard.writeText(formatted);
+    setCopied(true);
+    setShowEHRMenu(false);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div className="overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-soft">
       <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-6 py-5 text-white">
@@ -43,10 +59,37 @@ export default function ReportViewer({ report }: ReportViewerProps) {
             </p>
             <h2 className="text-xl font-semibold">Medical Report</h2>
           </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-300">
-            {report.date && <span>Date: {report.date}</span>}
-            {report.patientName && <span>Patient: {report.patientName}</span>}
-            {report.doctorName && <span>Doctor: Dr. {report.doctorName}</span>}
+          
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <button
+                onClick={() => setShowEHRMenu(!showEHRMenu)}
+                className="flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                Smart Copy
+                <ChevronDown className="w-3 h-3 opacity-50" />
+              </button>
+              
+              {showEHRMenu && (
+                <div className="absolute right-0 mt-2 w-48 rounded-2xl bg-slate-900 border border-white/10 shadow-2xl z-50 py-2 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                  {(["Epic", "Cerner", "Athena", "Generic"] as EHRSystem[]).map((system) => (
+                    <button
+                      key={system}
+                      onClick={() => handleSmartCopy(system)}
+                      className="w-full px-4 py-2.5 text-left text-xs font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
+                    >
+                      Copy for {system}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="hidden sm:flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-300 border-l border-white/10 pl-6 ml-3">
+              {report.date && <span>Date: {report.date}</span>}
+              {report.patientName && <span>Patient: {report.patientName}</span>}
+            </div>
           </div>
         </div>
       </div>
