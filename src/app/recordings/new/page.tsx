@@ -43,6 +43,7 @@ export default function NewRecordingPage() {
   const [title, setTitle] = useState("");
   const [patientName, setPatientName] = useState("");
   const [doctorName, setDoctorName] = useState("");
+  const [medicalSpecialty, setMedicalSpecialty] = useState("General Practice");
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [browserTranscript, setBrowserTranscript] = useState("");
   const [transcriptionMode, setTranscriptionMode] = useState<TranscriptionMode>("browser");
@@ -112,6 +113,7 @@ export default function NewRecordingPage() {
       formData.append("title", title || "Untitled Recording");
       if (patientName) formData.append("patientName", patientName);
       if (doctorName) formData.append("doctorName", doctorName);
+      if (medicalSpecialty) formData.append("medicalSpecialty", medicalSpecialty);
       
       console.log("[NewRecording] Submitting with transcript:", browserTranscript);
       console.log("[NewRecording] Transcription mode:", transcriptionMode);
@@ -215,6 +217,34 @@ export default function NewRecordingPage() {
                 className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-4 py-3 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-400"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Medical specialty
+            </label>
+            <select
+              value={medicalSpecialty}
+              onChange={(e) => setMedicalSpecialty(e.target.value)}
+              className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400 appearance-none"
+            >
+              {[
+                "General Practice",
+                "Internal Medicine",
+                "Pediatrics",
+                "Orthopedics",
+                "Psychiatry",
+                "Cardiology",
+                "Dermatology",
+                "Obstetrics & Gynecology",
+                "Oncology",
+                "Veterinary Medicine",
+              ].map((specialty) => (
+                <option key={specialty} value={specialty}>
+                  {specialty}
+                </option>
+              ))}
+            </select>
           </div>
         </section>
 

@@ -80,6 +80,42 @@ export default function ReportViewer({ report }: ReportViewerProps) {
           label="Additional Notes"
           value={report.additionalNotes}
         />
+
+        {report.billingCodes && (
+          <div className="py-4">
+            <dt className="text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-600 mb-3">
+              Medical Billing Codes (Suggested)
+            </dt>
+            <dd className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {report.billingCodes.icd10 && report.billingCodes.icd10.length > 0 && (
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">ICD-10 (Diagnosis)</h4>
+                  <ul className="space-y-2">
+                    {report.billingCodes.icd10.map((code, i) => (
+                      <li key={i} className="text-sm">
+                        <span className="font-mono font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded mr-2">{code.code}</span>
+                        <span className="text-slate-600">{code.description}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {report.billingCodes.cpt && report.billingCodes.cpt.length > 0 && (
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">CPT (Procedure)</h4>
+                  <ul className="space-y-2">
+                    {report.billingCodes.cpt.map((code, i) => (
+                      <li key={i} className="text-sm">
+                        <span className="font-mono font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded mr-2">{code.code}</span>
+                        <span className="text-slate-600">{code.description}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </dd>
+          </div>
+        )}
       </dl>
 
       <div className="px-6 py-3 bg-slate-50 border-t border-slate-100">

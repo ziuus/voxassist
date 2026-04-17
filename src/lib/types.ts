@@ -12,6 +12,10 @@ export interface MedicalReport {
   medications?: string[];
   followUp?: string;
   additionalNotes?: string;
+  billingCodes?: {
+    icd10: { code: string; description: string }[];
+    cpt: { code: string; description: string }[];
+  };
 }
 
 export type RecordingStatus =
@@ -27,6 +31,7 @@ export interface Recording {
   title: string;
   patientName?: string;
   doctorName?: string;
+  medicalSpecialty?: string;
   date: string;
   status: RecordingStatus;
   audioFileName?: string;

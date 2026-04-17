@@ -159,18 +159,19 @@ export async function transcribeAudio(audioFilePath: string): Promise<string> {
 async function generateReportWithOpenAI(
   transcript: string,
   patientName?: string,
-  doctorName?: string
+  doctorName?: string,
+  medicalSpecialty?: string
 ): Promise<MedicalReport> {
   const client = getOpenAIClient();
   const model = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
 
   const today = new Date().toISOString().split("T")[0];
 
-  const systemPrompt = `You are a medical AI assistant that analyzes doctor-patient conversation transcripts and generates structured medical reports.
-Extract relevant medical information and organize it into a structured report.
-Respond ONLY with a valid JSON object matching the specified schema. Do not include markdown code blocks or any other text.`;
+  const systemPrompt = `You are an elite medical AI assistant. Your task is to analyze doctor-patient transcripts and generate precise, professional medical reports.
+Your priority is accuracy in clinical reasoning and medical billing integrity. Identify all relevant ICD-10 and CPT codes based strictly on the conversation.
+Respond ONLY with a valid JSON object matching the specified schema.`;
 
-  const userPrompt = `Analyze the following doctor-patient conversation transcript and generate a structured medical report.
+  const userPrompt = `Analyze the following doctor-patient conversation transcript and generate a structured medical report tailored for the specialty of ${medicalSpecialty || "General Practice"}.
 
 ${patientName ? `Patient: ${patientName}` : ""}
 ${doctorName ? `Doctor: ${doctorName}` : ""}
@@ -193,6 +194,10 @@ Generate a JSON report with these fields (omit any field if the information is n
   "treatmentPlan": "recommended treatment plan",
   "medications": ["list", "of", "prescribed", "medications"],
   "followUp": "follow-up instructions",
+  "billingCodes": {
+    "icd10": [{"code": "ICD-10 code", "description": "short description"}],
+    "cpt": [{"code": "CPT code", "description": "short description"}]
+  },
   "additionalNotes": "any other relevant information"
 }`;
 
@@ -223,14 +228,16 @@ Generate a JSON report with these fields (omit any field if the information is n
 async function generateReportWithGoogle(
   transcript: string,
   patientName?: string,
-  doctorName?: string
+  doctorName?: string,
+  medicalSpecialty?: string
 ): Promise<MedicalReport> {
   const client = getGoogleClient();
   const model = process.env.GOOGLE_MODEL ?? "gemini-2.0-flash";
   const today = new Date().toISOString().split("T")[0];
 
   const genModel = client.getGenerativeModel({ model });
-  const prompt = `You are a medical AI assistant that analyzes doctor-patient conversation transcripts and generates structured medical reports.
+  const prompt = `You are an elite medical AI assistant. Analyze the transcript below to generate a precise, professional medical report tailored for the specialty of ${medicalSpecialty || "General Practice"}. 
+Prioritize accuracy in clinical reasoning and medical billing integrity (ICD-10/CPT codes).
 Return ONLY valid JSON with no markdown and no explanation.
 
 ${patientName ? `Patient: ${patientName}` : ""}
@@ -254,6 +261,10 @@ Required JSON shape:
   "treatmentPlan": "recommended treatment plan",
   "medications": ["list", "of", "prescribed", "medications"],
   "followUp": "follow-up instructions",
+  "billingCodes": {
+    "icd10": [{"code": "ICD-10 code", "description": "short description"}],
+    "cpt": [{"code": "CPT code", "description": "short description"}]
+  },
   "additionalNotes": "any other relevant information"
 }`;
 
@@ -273,12 +284,13 @@ Required JSON shape:
 export async function generateMedicalReport(
   transcript: string,
   patientName?: string,
-  doctorName?: string
+  doctorName?: string,
+  medicalSpecialty?: string
 ): Promise<MedicalReport> {
   const provider = getAiProvider();
   if (provider === "google") {
-    return generateReportWithGoogle(transcript, patientName, doctorName);
+    return generateReportWithGoogle(transcript, patientName, doctorName, medicalSpecialty);
   }
   // Both openai and groq use the OpenAI-compatible API
-  return generateReportWithOpenAI(transcript, patientName, doctorName);
+  return generateReportWithOpenAI(transcript, patientName, doctorName, medicalSpecialty);
 }
