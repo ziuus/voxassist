@@ -1,6 +1,7 @@
 import { generateMedicalReport, transcribeAudio } from "@/lib/openai";
 import { getAudioPathForTranscription } from "@/lib/audioStorage";
 import { getRecordingById, saveRecording } from "@/lib/storage";
+import { getPrismaClient } from "./prisma";
 
 export async function processTranscriptionJob(recordingId: string): Promise<void> {
   const recording = await getRecordingById(recordingId);
@@ -40,6 +41,7 @@ export async function processTranscriptionJob(recordingId: string): Promise<void
 }
 
 export async function processReportJob(recordingId: string): Promise<void> {
+  const prisma = getPrismaClient();
   const recording = await getRecordingById(recordingId);
   if (!recording) {
     throw new Error(`Recording ${recordingId} not found`);
@@ -49,11 +51,31 @@ export async function processReportJob(recordingId: string): Promise<void> {
     throw new Error(`Recording ${recordingId} has no transcript`);
   }
 
+  // Fetch user's default template or global default
+  let templateFields: string[] | undefined;
+  if (prisma && recording.userId) {
+    const template = await prisma.reportTemplate.findFirst({
+      where: {
+        OR: [
+          { userId: recording.userId, isDefault: true },
+          { userId: null, isDefault: true }
+        ]
+      },
+      orderBy: { userId: 'desc' } // Prioritize user-specific template
+    });
+    
+    if (template) {
+      templateFields = template.fields;
+    }
+  }
+
   try {
     const report = await generateMedicalReport(
       recording.transcript,
       recording.patientName,
-      recording.doctorName
+      recording.doctorName,
+      recording.medicalSpecialty,
+      templateFields
     );
 
     await saveRecording({

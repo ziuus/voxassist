@@ -4,7 +4,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --app-bg: #f4f0ea;
+  --app-bg: #fdfcf9;
   --app-ink: #0b1c2c;
   --app-muted: #516074;
   --app-surface: #ffffff;
@@ -12,21 +12,19 @@
   --app-accent: #0e7a73;
   --app-accent-2: #b45f1a;
   --app-accent-3: #1d4ed8;
-  --font-sans: "Sora", "Avenir Next", "Segoe UI", "Helvetica Neue", "Noto Sans",
-    sans-serif;
-  --font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", "Palatino",
-    serif;
+  --font-sans: "Sora", "Avenir Next", "Segoe UI", "Helvetica Neue", "Noto Sans", sans-serif;
+  --font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", "Palatino", serif;
 }
 
 .dark {
-  --app-bg: #0b0f14;
+  --app-bg: #000000;
   --app-ink: #f0f4f8;
   --app-muted: #94a3b8;
-  --app-surface: #131b23;
-  --app-border: rgba(255, 255, 255, 0.1);
-  --app-accent: #14b8a6;
-  --app-accent-2: #f59e0b;
-  --app-accent-3: #60a5fa;
+  --app-surface: #0a0a0a;
+  --app-border: rgba(255, 255, 255, 0.05);
+  --app-accent: #68BA7F; /* Emerald Glow Protocol */
+  --app-accent-2: #2E6F40;
+  --app-accent-3: #10b981;
 }
 
 @layer base {
@@ -46,156 +44,68 @@
     overflow-x: clip;
   }
 
-  h1,
-  h2,
-  h3,
-  h4 {
-    font-family: var(--font-display), var(--font-sans), system-ui,
-      -apple-system, sans-serif;
+  h1, h2, h3, h4 {
+    font-family: var(--font-display), var(--font-sans), system-ui, -apple-system, sans-serif;
     letter-spacing: -0.02em;
   }
 
   ::selection {
-    background: rgba(14, 165, 166, 0.25);
+    background: rgba(104, 186, 127, 0.25);
   }
 }
 
 @layer utilities {
   .app-bg {
-    background-image: radial-gradient(
-        1200px circle at 10% -20%,
-        rgba(14, 122, 115, 0.15),
-        transparent 60%
-      ),
-      radial-gradient(
-        900px circle at 105% 0%,
-        rgba(29, 78, 216, 0.1),
-        transparent 58%
-      ),
-      radial-gradient(
-        900px circle at 20% 120%,
-        rgba(180, 95, 26, 0.1),
-        transparent 65%
-      ),
-      linear-gradient(180deg, #f8fafc 0%, #f4f0ea 100%);
+    background-image: radial-gradient(1200px circle at 10% -20%, rgba(14, 122, 115, 0.15), transparent 60%),
+      radial-gradient(900px circle at 105% 0%, rgba(29, 78, 216, 0.1), transparent 58%),
+      linear-gradient(180deg, #ffffff 0%, #fdfcf9 100%);
   }
 
   .dark .app-bg {
-    background-image: radial-gradient(
-        1200px circle at 10% -20%,
-        rgba(20, 184, 166, 0.12),
-        transparent 60%
-      ),
-      radial-gradient(
-        900px circle at 105% 0%,
-        rgba(96, 165, 250, 0.1),
-        transparent 58%
-      ),
-      radial-gradient(
-        900px circle at 20% 120%,
-        rgba(245, 158, 11, 0.08),
-        transparent 65%
-      ),
-      linear-gradient(180deg, rgba(11, 15, 20, 0.85) 0%, #0b0f14 100%);
+    background-image: radial-gradient(1200px circle at 10% -20%, rgba(104, 186, 127, 0.1), transparent 60%),
+      radial-gradient(900px circle at 105% 0%, rgba(16, 185, 129, 0.05), transparent 58%),
+      linear-gradient(180deg, #000000 0%, #050505 100%);
   }
 
   .app-grid {
-    background-image: linear-gradient(
-        var(--app-border) 1px,
-        transparent 1px
-      ),
+    background-image: linear-gradient(var(--app-border) 1px, transparent 1px),
       linear-gradient(90deg, var(--app-border) 1px, transparent 1px);
     background-size: 36px 36px;
     mask-image: radial-gradient(circle at top, black 40%, transparent 78%);
   }
 
   .glass {
-    background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(22px);
-    box-shadow: 0 24px 50px -32px rgba(11, 28, 44, 0.45);
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(24px) saturate(120%);
+    box-shadow: 0 24px 50px -32px rgba(11, 28, 44, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.5);
   }
 
   .dark .glass {
-    background: rgba(30, 41, 59, 0.85);
-    box-shadow: 0 24px 50px -32px rgba(0, 0, 0, 0.5);
+    background: rgba(10, 10, 10, 0.7);
+    box-shadow: 0 24px 50px -32px rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.05);
   }
 
-  .liquid-glass {
-    background: linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.85),
-      rgba(255, 255, 255, 0.6)
-    );
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(24px) saturate(140%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      0 30px 70px -50px rgba(10, 25, 45, 0.15);
+  .emerald-glow {
+    filter: drop-shadow(0 0 15px rgba(104, 186, 127, 0.3));
   }
 
-  .dark .liquid-glass {
-    background: linear-gradient(
-      145deg,
-      rgba(30, 41, 59, 0.85),
-      rgba(15, 23, 42, 0.7)
-    );
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(24px) saturate(140%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05),
-      0 30px 70px -50px rgba(0, 0, 0, 0.4);
+  .text-glow {
+    text-shadow: 0 0 20px rgba(104, 186, 127, 0.4);
   }
 
   .cinematic-grid {
-    background-image: radial-gradient(
-        circle at 25% 15%,
-        rgba(14, 122, 115, 0.2),
-        transparent 45%
-      ),
-      radial-gradient(circle at 85% 10%, rgba(29, 78, 216, 0.15), transparent 40%),
+    background-image: radial-gradient(circle at 25% 15%, rgba(104, 186, 127, 0.05), transparent 45%),
+      radial-gradient(circle at 85% 10%, rgba(16, 185, 129, 0.03), transparent 40%),
       linear-gradient(var(--app-border) 1px, transparent 1px),
       linear-gradient(90deg, var(--app-border) 1px, transparent 1px);
     background-size: auto, auto, 36px 36px, 36px 36px;
   }
 
-  .dark .cinematic-grid {
-    background-image: radial-gradient(
-        circle at 25% 15%,
-        rgba(20, 184, 166, 0.15),
-        transparent 45%
-      ),
-      radial-gradient(circle at 85% 10%, rgba(96, 165, 250, 0.1), transparent 40%),
-      linear-gradient(var(--app-border) 1px, transparent 1px),
-      linear-gradient(90deg, var(--app-border) 1px, transparent 1px);
-  }
-
-  .video-frame {
-    box-shadow: 0 30px 80px -45px rgba(10, 24, 45, 0.85),
-      0 2px 0 rgba(255, 255, 255, 0.35) inset;
-    border: 1px solid var(--app-border);
-  }
-
   .depth-tilt {
     transform-style: preserve-3d;
     perspective: 1100px;
-  }
-
-  .shadow-soft {
-    box-shadow: 0 16px 40px -28px rgba(11, 28, 44, 0.5);
-  }
-  
-  .dark .shadow-soft {
-    box-shadow: 0 16px 40px -28px rgba(0, 0, 0, 0.8);
-  }
-
-  .text-gradient {
-    background: linear-gradient(120deg, var(--app-ink) 0%, var(--app-accent) 45%, var(--app-accent-3) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .glow-ring {
-    box-shadow: 0 0 0 1px rgba(11, 28, 44, 0.08),
-      0 12px 40px -30px rgba(14, 122, 115, 0.7);
   }
 
   .float-slow {
@@ -206,34 +116,9 @@
     animation: floatSlow 16s ease-in-out infinite;
     animation-delay: -6s;
   }
-
-  .shimmer {
-    animation: shimmer 2s infinite;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.1) 50%,
-      transparent 100%
-    );
-    background-size: 200% 100%;
-  }
-
-  @keyframes shimmer {
-    0% {
-      background-position: -200% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
-  }
 }
 
 @keyframes floatSlow {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-  50% {
-    transform: translate3d(0, -12px, 0);
-  }
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -12px, 0); }
 }

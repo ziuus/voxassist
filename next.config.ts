@@ -26,10 +26,18 @@ const nextConfig: NextConfig = {
       tailwindcss: path.join(appRoot, "node_modules/tailwindcss"),
     },
   },
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.resolve = config.resolve || {};
     const modules = config.resolve.modules || [];
     config.resolve.modules = [path.join(appRoot, "node_modules"), ...modules];
+    
+    // Vosk/Transformers fixes for production
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+      };
+    }
     return config;
   },
 };

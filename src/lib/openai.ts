@@ -50,7 +50,7 @@ function ensureAiConfigured(provider: AiProvider) {
   }
 }
 
-function getOpenAIClient(): OpenAI {
+export function getOpenAIClient(): OpenAI {
   if (_client) return _client;
 
   const provider = getAiProvider();
@@ -66,7 +66,7 @@ function getOpenAIClient(): OpenAI {
   return _client;
 }
 
-function getGoogleClient(): GoogleGenerativeAI {
+export function getGoogleClient(): GoogleGenerativeAI {
   if (_googleClient) return _googleClient;
 
   ensureAiConfigured("google");
@@ -87,7 +87,7 @@ function getMimeTypeFromPath(audioFilePath: string): string {
   return "application/octet-stream";
 }
 
-function extractJsonObject(raw: string): string {
+export function extractJsonObject(raw: string): string {
   const direct = raw.trim();
   if (direct.startsWith("{") && direct.endsWith("}")) {
     return direct;
@@ -160,7 +160,8 @@ async function generateReportWithOpenAI(
   transcript: string,
   patientName?: string,
   doctorName?: string,
-  medicalSpecialty?: string
+  medicalSpecialty?: string,
+  templateFields?: string[]
 ): Promise<MedicalReport> {
   const client = getOpenAIClient();
   const model = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
@@ -169,7 +170,33 @@ async function generateReportWithOpenAI(
 
   const systemPrompt = `You are an elite medical AI assistant. Your task is to analyze doctor-patient transcripts and generate precise, professional medical reports.
 Your priority is accuracy in clinical reasoning and medical billing integrity. Identify all relevant ICD-10 and CPT codes based strictly on the conversation.
-Respond ONLY with a valid JSON object matching the specified schema.`;
+Respond ONLY with a valid JSON object matching the requested schema.`;
+
+  const fields = templateFields || [
+    "chiefComplaint",
+    "symptoms",
+    "medicalHistory",
+    "examination",
+    "assessment",
+    "diagnosis",
+    "treatmentPlan",
+    "medications",
+    "followUp",
+  ];
+
+  const jsonShape = fields.reduce((acc, field) => {
+    acc[field] = field === "symptoms" || field === "medications" ? ["list", "of", "items"] : "string summary";
+    return acc;
+  }, {} as any);
+
+  jsonShape.patientName = "string";
+  jsonShape.doctorName = "string";
+  jsonShape.date = "YYYY-MM-DD";
+  jsonShape.billingCodes = {
+    icd10: [{"code": "ICD-10 code", "description": "short description"}],
+    cpt: [{"code": "CPT code", "description": "short description"}]
+  };
+  jsonShape.additionalNotes = "string";
 
   const userPrompt = `Analyze the following doctor-patient conversation transcript and generate a structured medical report tailored for the specialty of ${medicalSpecialty || "General Practice"}.
 
@@ -180,26 +207,8 @@ Date: ${today}
 Transcript:
 ${transcript}
 
-Generate a JSON report with these fields (omit any field if the information is not mentioned in the transcript):
-{
-  "patientName": "string or use provided patient name",
-  "doctorName": "string or use provided doctor name",
-  "date": "YYYY-MM-DD",
-  "chiefComplaint": "main reason for visit",
-  "symptoms": ["list", "of", "symptoms"],
-  "medicalHistory": "relevant past medical history",
-  "examination": "physical examination findings",
-  "assessment": "doctor's assessment",
-  "diagnosis": "diagnosis or differential diagnoses",
-  "treatmentPlan": "recommended treatment plan",
-  "medications": ["list", "of", "prescribed", "medications"],
-  "followUp": "follow-up instructions",
-  "billingCodes": {
-    "icd10": [{"code": "ICD-10 code", "description": "short description"}],
-    "cpt": [{"code": "CPT code", "description": "short description"}]
-  },
-  "additionalNotes": "any other relevant information"
-}`;
+Generate a JSON report with exactly these keys (omit any field if the information is NOT mentioned in the transcript):
+${JSON.stringify(jsonShape, null, 2)}`;
 
   const completion = await client.chat.completions.create({
     model,
@@ -229,13 +238,41 @@ async function generateReportWithGoogle(
   transcript: string,
   patientName?: string,
   doctorName?: string,
-  medicalSpecialty?: string
+  medicalSpecialty?: string,
+  templateFields?: string[]
 ): Promise<MedicalReport> {
   const client = getGoogleClient();
   const model = process.env.GOOGLE_MODEL ?? "gemini-2.0-flash";
   const today = new Date().toISOString().split("T")[0];
 
   const genModel = client.getGenerativeModel({ model });
+  
+  const fields = templateFields || [
+    "chiefComplaint",
+    "symptoms",
+    "medicalHistory",
+    "examination",
+    "assessment",
+    "diagnosis",
+    "treatmentPlan",
+    "medications",
+    "followUp",
+  ];
+
+  const jsonShape = fields.reduce((acc, field) => {
+    acc[field] = field === "symptoms" || field === "medications" ? ["list", "of", "items"] : "string summary";
+    return acc;
+  }, {} as any);
+
+  jsonShape.patientName = "string";
+  jsonShape.doctorName = "string";
+  jsonShape.date = "YYYY-MM-DD";
+  jsonShape.billingCodes = {
+    icd10: [{"code": "ICD-10 code", "description": "short description"}],
+    cpt: [{"code": "CPT code", "description": "short description"}]
+  };
+  jsonShape.additionalNotes = "string";
+
   const prompt = `You are an elite medical AI assistant. Analyze the transcript below to generate a precise, professional medical report tailored for the specialty of ${medicalSpecialty || "General Practice"}. 
 Prioritize accuracy in clinical reasoning and medical billing integrity (ICD-10/CPT codes).
 Return ONLY valid JSON with no markdown and no explanation.
@@ -247,26 +284,8 @@ Date: ${today}
 Transcript:
 ${transcript}
 
-Required JSON shape:
-{
-  "patientName": "string or use provided patient name",
-  "doctorName": "string or use provided doctor name",
-  "date": "YYYY-MM-DD",
-  "chiefComplaint": "main reason for visit",
-  "symptoms": ["list", "of", "symptoms"],
-  "medicalHistory": "relevant past medical history",
-  "examination": "physical examination findings",
-  "assessment": "doctor's assessment",
-  "diagnosis": "diagnosis or differential diagnoses",
-  "treatmentPlan": "recommended treatment plan",
-  "medications": ["list", "of", "prescribed", "medications"],
-  "followUp": "follow-up instructions",
-  "billingCodes": {
-    "icd10": [{"code": "ICD-10 code", "description": "short description"}],
-    "cpt": [{"code": "CPT code", "description": "short description"}]
-  },
-  "additionalNotes": "any other relevant information"
-}`;
+Required JSON shape (omit any field if information is NOT mentioned):
+${JSON.stringify(jsonShape, null, 2)}`;
 
   const result = await genModel.generateContent(prompt);
   const raw = result.response.text();
@@ -285,12 +304,13 @@ export async function generateMedicalReport(
   transcript: string,
   patientName?: string,
   doctorName?: string,
-  medicalSpecialty?: string
+  medicalSpecialty?: string,
+  templateFields?: string[]
 ): Promise<MedicalReport> {
   const provider = getAiProvider();
   if (provider === "google") {
-    return generateReportWithGoogle(transcript, patientName, doctorName, medicalSpecialty);
+    return generateReportWithGoogle(transcript, patientName, doctorName, medicalSpecialty, templateFields);
   }
   // Both openai and groq use the OpenAI-compatible API
-  return generateReportWithOpenAI(transcript, patientName, doctorName, medicalSpecialty);
+  return generateReportWithOpenAI(transcript, patientName, doctorName, medicalSpecialty, templateFields);
 }

@@ -16,6 +16,7 @@ export interface MedicalReport {
     icd10: { code: string; description: string }[];
     cpt: { code: string; description: string }[];
   };
+  [key: string]: any; // Allow custom template fields
 }
 
 export type RecordingStatus =
@@ -28,6 +29,7 @@ export type RecordingStatus =
 
 export interface Recording {
   id: string;
+  userId?: string;
   title: string;
   patientName?: string;
   doctorName?: string;

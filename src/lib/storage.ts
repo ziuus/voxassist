@@ -1,7 +1,8 @@
 import { Recording } from "./types";
-import { supabase } from "./supabase";
+import { getSupabase } from "./supabase";
 
 export async function getAllRecordings(): Promise<Recording[]> {
+  const supabase = getSupabase();
   const { data, error } = await supabase
     .from('recordings')
     .select('*')
@@ -16,6 +17,7 @@ export async function getAllRecordings(): Promise<Recording[]> {
 }
 
 export async function getRecordingById(id: string): Promise<Recording | null> {
+  const supabase = getSupabase();
   const { data, error } = await supabase
     .from('recordings')
     .select('*')
@@ -30,7 +32,40 @@ export async function getRecordingById(id: string): Promise<Recording | null> {
   return data ? mapSupabaseRecording(data) : null;
 }
 
+export async function searchRecordings(params: {
+  patientName?: string;
+  doctorName?: string;
+  query?: string;
+  limit?: number;
+}): Promise<Recording[]> {
+  const supabase = getSupabase();
+  let query = supabase.from('recordings').select('*');
+
+  if (params.patientName) {
+    query = query.ilike('patient_name', `%${params.patientName}%`);
+  }
+  if (params.doctorName) {
+    query = query.ilike('doctor_name', `%${params.doctorName}%`);
+  }
+  if (params.query) {
+    // Basic text search on title and transcript
+    query = query.or(`title.ilike.%${params.query}%,transcript.ilike.%${params.query}%`);
+  }
+
+  const { data, error } = await query
+    .order('created_at', { ascending: false })
+    .limit(params.limit || 5);
+
+  if (error) {
+    console.error("Supabase Search Error:", error);
+    return [];
+  }
+
+  return (data || []).map(mapSupabaseRecording);
+}
+
 export async function saveRecording(recording: Recording): Promise<void> {
+  const supabase = getSupabase();
   const { data: { session } } = await supabase.auth.getSession();
   
   const payload = {
@@ -49,7 +84,7 @@ export async function saveRecording(recording: Recording): Promise<void> {
     report: recording.report as any,
     error_message: recording.errorMessage,
     updated_at: new Date().toISOString(),
-    user_id: session?.user.id // Assign to current user if logged in
+    user_id: recording.userId || session?.user.id // Prefer explicitly provided userId
   };
 
   const { error } = await supabase
@@ -62,6 +97,7 @@ export async function saveRecording(recording: Recording): Promise<void> {
 }
 
 export async function deleteRecording(id: string): Promise<boolean> {
+  const supabase = getSupabase();
   const { error } = await supabase
     .from('recordings')
     .delete()
@@ -73,6 +109,7 @@ export async function deleteRecording(id: string): Promise<boolean> {
 function mapSupabaseRecording(raw: any): Recording {
   return {
     id: raw.external_id,
+    userId: raw.user_id,
     title: raw.title,
     patientName: raw.patient_name,
     doctorName: raw.doctor_name,
