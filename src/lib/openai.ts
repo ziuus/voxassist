@@ -3,12 +3,10 @@ import fs from "fs";
 import path from "path";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { MedicalReport } from "./types";
-import { getRuntimeConfig } from "./env";
+import { getRuntimeConfig, AiProvider } from "./env";
 
 let _client: OpenAI | null = null;
 let _googleClient: GoogleGenerativeAI | null = null;
-
-type AiProvider = "google" | "openai" | "groq";
 
 let loggedMissingGoogleKey = false;
 let loggedMissingOpenAIKey = false;
@@ -38,6 +36,11 @@ function ensureAiConfigured(provider: AiProvider) {
       );
       throw new Error("GOOGLE_API_KEY is not configured.");
     }
+    return;
+  }
+
+  if (provider === "ollama") {
+    // Ollama runs locally — no API key needed
     return;
   }
 
@@ -151,6 +154,13 @@ async function transcribeWithOpenAI(audioFilePath: string): Promise<string> {
 
 export async function transcribeAudio(audioFilePath: string): Promise<string> {
   const provider = getAiProvider();
+  const config = getRuntimeConfig();
+
+  if (provider === "ollama" || config.demoMode) {
+    // Ollama doesn't support audio transcription. Return demo transcript.
+    return "Doctor: Good morning, how can I help you today?\nPatient: I've been having headaches for the past week, especially in the morning.\nDoctor: Any other symptoms like nausea or vision problems?\nPatient: Sometimes I feel dizzy when I stand up quickly.\nDoctor: Let me check your blood pressure. Please take a seat here.\n---\n[Demo transcription — no actual audio was processed. Configure Ollama Whisper or use Groq/OpenAI for real transcription.]";
+  }
+
   if (provider === "google") return transcribeWithGoogle(audioFilePath);
   // Both openai and groq use the OpenAI-compatible API
   return transcribeWithOpenAI(audioFilePath);

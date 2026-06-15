@@ -1,72 +1,88 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/supabase';
 
+function getClient() {
+  const supabase = getSupabase();
+  if (!supabase) {
+    throw new Error('Supabase not configured');
+  }
+  return supabase as NonNullable<ReturnType<typeof getSupabase>>;
+}
+
 // PATCH: Update a template
 export async function PATCH(req: NextRequest, context: any) {
-  const supabase = getSupabase();
-  const { data: { session } } = await supabase.auth.getSession();
-  const userId = session?.user.id;
+  try {
+    const supabase = getClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user.id;
 
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-  const { id } = context.params;
-  const body = await req.json();
-  const { name, fields, isDefault } = body;
+    const { id } = context.params;
+    const body = await req.json();
+    const { name, fields, isDefault } = body;
 
-  // If setting as default, unset other defaults for this user
-  if (isDefault) {
-    await supabase
+    // If setting as default, unset other defaults for this user
+    if (isDefault) {
+      await supabase
+        .from('report_templates')
+        .update({ is_default: false })
+        .eq('user_id', userId)
+        .eq('is_default', true)
+        .neq('id', id);
+    }
+
+    const { data: template, error } = await supabase
       .from('report_templates')
-      .update({ is_default: false })
+      .update({ 
+        name, 
+        fields,
+        is_default: isDefault !== undefined ? !!isDefault : undefined
+      })
+      .eq('id', id)
       .eq('user_id', userId)
-      .eq('is_default', true)
-      .neq('id', id);
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(mapSupabaseTemplate(template));
+  } catch {
+    return NextResponse.json({ error: 'Database not available' }, { status: 503 });
   }
-
-  const { data: template, error } = await supabase
-    .from('report_templates')
-    .update({ 
-      name, 
-      fields,
-      is_default: isDefault !== undefined ? !!isDefault : undefined
-    })
-    .eq('id', id)
-    .eq('user_id', userId)
-    .select()
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json(mapSupabaseTemplate(template));
 }
 
 // DELETE: Delete a template
 export async function DELETE(req: NextRequest, context: any) {
-  const supabase = getSupabase();
-  const { data: { session } } = await supabase.auth.getSession();
-  const userId = session?.user.id;
+  try {
+    const supabase = getClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user.id;
 
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = context.params;
+
+    const { error } = await supabase
+      .from('report_templates')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: 'Database not available' }, { status: 503 });
   }
-
-  const { id } = context.params;
-
-  const { error } = await supabase
-    .from('report_templates')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', userId);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ success: true });
 }
 
 function mapSupabaseTemplate(raw: any) {

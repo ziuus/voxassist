@@ -1,8 +1,19 @@
 import { Recording } from "./types";
 import { getSupabase } from "./supabase";
+import { getRuntimeConfig } from "./env";
+import * as local from "./localStorage";
+
+function useLocal(): boolean {
+  const config = getRuntimeConfig();
+  return config.demoMode || config.persistenceMode === "jsonfile" || config.forceLocalStorage;
+}
 
 export async function getAllRecordings(): Promise<Recording[]> {
+  if (useLocal()) return local.getAllRecordings();
+
   const supabase = getSupabase();
+  if (!supabase) return local.getAllRecordings();
+
   const { data, error } = await supabase
     .from('recordings')
     .select('*')
@@ -17,7 +28,11 @@ export async function getAllRecordings(): Promise<Recording[]> {
 }
 
 export async function getRecordingById(id: string): Promise<Recording | null> {
+  if (useLocal()) return local.getRecordingById(id);
+
   const supabase = getSupabase();
+  if (!supabase) return local.getRecordingById(id);
+
   const { data, error } = await supabase
     .from('recordings')
     .select('*')
@@ -38,7 +53,11 @@ export async function searchRecordings(params: {
   query?: string;
   limit?: number;
 }): Promise<Recording[]> {
+  if (useLocal()) return local.searchRecordings(params);
+
   const supabase = getSupabase();
+  if (!supabase) return local.searchRecordings(params);
+
   let query = supabase.from('recordings').select('*');
 
   if (params.patientName) {
@@ -48,7 +67,6 @@ export async function searchRecordings(params: {
     query = query.ilike('doctor_name', `%${params.doctorName}%`);
   }
   if (params.query) {
-    // Basic text search on title and transcript
     query = query.or(`title.ilike.%${params.query}%,transcript.ilike.%${params.query}%`);
   }
 
@@ -65,7 +83,17 @@ export async function searchRecordings(params: {
 }
 
 export async function saveRecording(recording: Recording): Promise<void> {
+  if (useLocal()) {
+    await local.updateRecording(recording.id, recording);
+    return;
+  }
+
   const supabase = getSupabase();
+  if (!supabase) {
+    await local.updateRecording(recording.id, recording);
+    return;
+  }
+
   const { data: { session } } = await supabase.auth.getSession();
   
   const payload = {
@@ -84,7 +112,7 @@ export async function saveRecording(recording: Recording): Promise<void> {
     report: recording.report as any,
     error_message: recording.errorMessage,
     updated_at: new Date().toISOString(),
-    user_id: recording.userId || session?.user.id // Prefer explicitly provided userId
+    user_id: recording.userId || session?.user.id
   };
 
   const { error } = await supabase
@@ -97,7 +125,11 @@ export async function saveRecording(recording: Recording): Promise<void> {
 }
 
 export async function deleteRecording(id: string): Promise<boolean> {
+  if (useLocal()) return local.deleteRecording(id);
+
   const supabase = getSupabase();
+  if (!supabase) return local.deleteRecording(id);
+
   const { error } = await supabase
     .from('recordings')
     .delete()

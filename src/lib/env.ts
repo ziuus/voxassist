@@ -1,9 +1,10 @@
-type AiProvider = "google" | "openai" | "groq";
-type PersistenceMode = "local" | "mongodb";
+export type AiProvider = "google" | "openai" | "groq" | "ollama";
+type PersistenceMode = "local" | "mongodb" | "jsonfile";
 type AudioStorageMode = "local" | "s3";
 
 type RuntimeConfig = {
   prodEnabled: boolean;
+  demoMode: boolean;
   aiProvider: AiProvider;
   persistenceMode: PersistenceMode;
   audioStorageMode: AudioStorageMode;
@@ -35,6 +36,7 @@ function parseAiProvider(): AiProvider {
   const raw = process.env.AI_PROVIDER?.toLowerCase();
   if (raw === "openai") return "openai";
   if (raw === "groq") return "groq";
+  if (raw === "ollama") return "ollama";
   return "google"; // default
 }
 
@@ -62,6 +64,7 @@ function getEnv(name: string): string | undefined {
 
 export function getRuntimeConfig(): RuntimeConfig {
   const prodEnabled = parseBoolean("PROD", false);
+  const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
   const aiProvider = parseAiProvider();
   const persistenceMode = parsePersistenceMode(prodEnabled);
   const audioStorageMode = parseAudioStorageMode(prodEnabled);
@@ -70,6 +73,7 @@ export function getRuntimeConfig(): RuntimeConfig {
 
   return {
     prodEnabled,
+    demoMode,
     aiProvider,
     persistenceMode,
     audioStorageMode,
@@ -88,9 +92,10 @@ export function getRuntimeConfig(): RuntimeConfig {
 export function getFeatureStatus() {
   const config = getRuntimeConfig();
   return {
-    aiAvailable: !!(config.aiProvider === "google" ? config.googleApiKey : config.openaiApiKey),
-    databaseAvailable: !!config.databaseUrl,
+    aiAvailable: config.aiProvider === "ollama" || !!config.googleApiKey || !!config.openaiApiKey,
+    databaseAvailable: !!config.databaseUrl || config.persistenceMode === "jsonfile",
     s3Available: !!(config.awsS3Bucket && config.awsS3Region),
     redisAvailable: !!config.redisUrl,
+    demoMode: config.demoMode,
   };
 }
