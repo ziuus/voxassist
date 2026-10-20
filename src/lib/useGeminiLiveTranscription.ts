@@ -226,9 +226,18 @@ export function useGeminiLiveTranscription(
           processor.connect(audioCtx.destination);
         };
 
-        ws.onmessage = (event) => {
-          if (typeof event.data !== "string") return;
-          const parsed = parseGeminiLiveMessage(event.data);
+        ws.onmessage = async (event) => {
+          let rawText = "";
+          if (typeof event.data === "string") {
+            rawText = event.data;
+          } else if (event.data instanceof Blob) {
+            rawText = await event.data.text();
+          } else if (event.data instanceof ArrayBuffer) {
+            rawText = new TextDecoder().decode(event.data);
+          }
+
+          if (!rawText) return;
+          const parsed = parseGeminiLiveMessage(rawText);
 
           if (parsed.error) {
             setError(parsed.error);

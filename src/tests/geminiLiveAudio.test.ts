@@ -13,7 +13,7 @@ import {
 
 describe("Gemini Live Audio Conversion & Messaging", () => {
   it("verifies constant values", () => {
-    assert.equal(GEMINI_LIVE_MODEL, "models/gemini-3.5-transcribe-live");
+    assert.ok(GEMINI_LIVE_MODEL.includes("models/gemini"));
     assert.equal(GEMINI_LIVE_SAMPLE_RATE, 16000);
   });
 
@@ -69,7 +69,7 @@ describe("Gemini Live Audio Conversion & Messaging", () => {
   });
 
   it("creates valid Gemini Live setup frame", () => {
-    const msg = createSetupMessage();
+    const msg = createSetupMessage("models/gemini-3.5-transcribe-live");
     const parsed = JSON.parse(msg);
 
     assert.equal(parsed.setup.model, "models/gemini-3.5-transcribe-live");

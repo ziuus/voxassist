@@ -28,9 +28,9 @@ export async function POST() {
   }
 
   try {
-    const now = new Date();
-    const newSessionExpireTime = new Date(now.getTime() + 2 * 60 * 1000); // 2 minutes to start
-    const expireTime = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes active session
+    const liveModel =
+      process.env.NEXT_PUBLIC_GEMINI_LIVE_MODEL ||
+      "models/gemini-2.5-flash-native-audio-preview-12-2025";
 
     const response = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/auth_tokens",
@@ -42,14 +42,6 @@ export async function POST() {
         },
         body: JSON.stringify({
           uses: 1,
-          new_session_expire_time: newSessionExpireTime.toISOString(),
-          expire_time: expireTime.toISOString(),
-          live_connect_constraints: {
-            model: MODEL_ID,
-            config: {
-              response_modalities: ["TEXT"],
-            },
-          },
         }),
       }
     );
@@ -59,7 +51,7 @@ export async function POST() {
       const token = data.name ?? "";
       return NextResponse.json({
         token,
-        model: "gemini-3.5-transcribe-live",
+        model: liveModel,
         wsUrl: `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=${encodeURIComponent(
           token
         )}`,

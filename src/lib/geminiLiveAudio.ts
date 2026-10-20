@@ -4,7 +4,9 @@
  * and parsing Gemini Live bidirectional WebSocket frames.
  */
 
-export const GEMINI_LIVE_MODEL = "models/gemini-3.5-transcribe-live";
+export const GEMINI_LIVE_MODEL =
+  (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_GEMINI_LIVE_MODEL) ||
+  "models/gemini-2.5-flash-native-audio-preview-12-2025";
 export const GEMINI_LIVE_SAMPLE_RATE = 16000;
 export const MAX_AUDIO_QUEUE_CHUNKS = 50; // Bound queue memory
 
@@ -76,15 +78,14 @@ export function createSetupMessage(
   model: string = GEMINI_LIVE_MODEL,
   languageCodes: string[] = []
 ): string {
+  const isAudioModal = model.includes("native-audio") || model.includes("audio");
   return JSON.stringify({
     setup: {
       model,
       generationConfig: {
-        responseModalities: ["TEXT"],
+        responseModalities: isAudioModal ? ["AUDIO"] : ["TEXT"],
       },
-      inputAudioTranscription: {
-        languageCodes,
-      },
+      inputAudioTranscription: languageCodes.length > 0 ? { languageCodes } : {},
     },
   });
 }
