@@ -45,7 +45,6 @@ export function useGeminiLiveTranscription(
   const isStoppingRef = useRef(false);
   const retryCountRef = useRef(0);
   const mediaStreamRef = useRef<MediaStream | null>(null);
-  const demoIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Synchronize transcript string with accumulated segments
   const updateFullTranscript = useCallback((interim = "") => {
@@ -58,11 +57,6 @@ export function useGeminiLiveTranscription(
   }, []);
 
   const cleanupAudioPipeline = useCallback(() => {
-    if (demoIntervalRef.current) {
-      clearInterval(demoIntervalRef.current);
-      demoIntervalRef.current = null;
-    }
-
     if (processorRef.current) {
       processorRef.current.onaudioprocess = null;
       processorRef.current.disconnect();
@@ -98,34 +92,6 @@ export function useGeminiLiveTranscription(
     setIsTranscribing(false);
   }, []);
 
-  const startDemoSimulation = useCallback(() => {
-    setIsConnected(true);
-    setIsTranscribing(true);
-    setIsConnecting(false);
-
-    const demoPhrases = [
-      "Patient reports headache",
-      "and mild shortness of breath.",
-      "Blood pressure measured at 125 over 80.",
-      "Recommendation: maintain hydration and follow up.",
-    ];
-    let idx = 0;
-
-    demoIntervalRef.current = setInterval(() => {
-      if (idx < demoPhrases.length) {
-        const phrase = demoPhrases[idx];
-        setInterimTranscript(phrase);
-        setTimeout(() => {
-          finalSegmentsRef.current.push(phrase);
-          setInterimTranscript("");
-          updateFullTranscript("");
-          onFinalTranscript?.(finalSegmentsRef.current.join(" ").trim());
-        }, 1200);
-        idx++;
-      }
-    }, 2800);
-  }, [onFinalTranscript, updateFullTranscript]);
-
   const connectAndStream = useCallback(
     async (stream: MediaStream) => {
       isStoppingRef.current = false;
@@ -142,16 +108,9 @@ export function useGeminiLiveTranscription(
         }
 
         const tokenData = (await tokenRes.json()) as {
-          demo?: boolean;
           token?: string;
           wsUrl?: string;
-          fallbackMode?: string;
         };
-
-        if (tokenData.demo) {
-          startDemoSimulation();
-          return;
-        }
 
         if (!tokenData.wsUrl) {
           throw new Error("No live WebSocket URL returned from token endpoint");
@@ -286,7 +245,7 @@ export function useGeminiLiveTranscription(
         onError?.(errMsg);
       }
     },
-    [model, languageCodes, onError, onFinalTranscript, startDemoSimulation, updateFullTranscript]
+    [model, languageCodes, onError, onFinalTranscript, updateFullTranscript]
   );
 
   const start = useCallback(

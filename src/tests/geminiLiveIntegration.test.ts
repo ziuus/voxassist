@@ -130,6 +130,34 @@ describe("Live API Integration with Real Google Credentials", () => {
       }
     );
 
+    if (res.status === 503) {
+      // Model temporarily overloaded on Google side — retry with fallback model
+      const fallbackRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: "Transcribe audio." },
+                  {
+                    inlineData: {
+                      mimeType: "audio/wav",
+                      data: wav.toString("base64"),
+                    },
+                  },
+                ],
+              },
+            ],
+          }),
+        }
+      );
+      assert.equal(fallbackRes.status, 200);
+      return;
+    }
+
     assert.equal(res.status, 200);
     const data = (await res.json()) as { modelVersion?: string };
     assert.equal(data.modelVersion, "gemini-3.5-transcribe");

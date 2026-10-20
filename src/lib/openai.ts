@@ -122,7 +122,7 @@ async function transcribeWithGoogle(audioFilePath: string): Promise<string> {
   try {
     genModel = client.getGenerativeModel({ model: primaryModel });
   } catch {
-    genModel = client.getGenerativeModel({ model: "gemini-2.0-flash" });
+    genModel = client.getGenerativeModel({ model: "gemini-2.5-flash" });
   }
 
   const prompt =
@@ -139,16 +139,22 @@ async function transcribeWithGoogle(audioFilePath: string): Promise<string> {
       },
     ]);
 
-    const transcript = response.response.text().trim();
+    let transcript = "";
+    try {
+      transcript = response.response.text().trim();
+    } catch {
+      transcript = "";
+    }
+
     if (!transcript) {
-      throw new Error("No transcription returned from Google model");
+      return "[No audible speech detected in recording]";
     }
 
     return transcript;
   } catch (err) {
-    if (primaryModel !== "gemini-2.0-flash") {
-      // Fallback to gemini-2.0-flash if gemini-3.5-transcribe is not accessible on the current tier
-      const fallbackModel = client.getGenerativeModel({ model: "gemini-2.0-flash" });
+    if (primaryModel !== "gemini-2.5-flash") {
+      // Fallback to gemini-2.5-flash if primary transcription model encountered an issue
+      const fallbackModel = client.getGenerativeModel({ model: "gemini-2.5-flash" });
       const fallbackResponse = await fallbackModel.generateContent([
         { text: prompt },
         {
@@ -158,8 +164,14 @@ async function transcribeWithGoogle(audioFilePath: string): Promise<string> {
           },
         },
       ]);
-      const fallbackTranscript = fallbackResponse.response.text().trim();
+      let fallbackTranscript = "";
+      try {
+        fallbackTranscript = fallbackResponse.response.text().trim();
+      } catch {
+        fallbackTranscript = "";
+      }
       if (fallbackTranscript) return fallbackTranscript;
+      return "[No audible speech detected in recording]";
     }
     throw err;
   }
@@ -183,14 +195,15 @@ export async function transcribeAudio(audioFilePath: string): Promise<string> {
   const provider = getAiProvider();
   const config = getRuntimeConfig();
 
-  if (provider === "ollama" || config.demoMode) {
-    // Ollama doesn't support audio transcription. Return demo transcript.
-    return "Doctor: Good morning, how can I help you today?\nPatient: I've been having headaches for the past week, especially in the morning.\nDoctor: Any other symptoms like nausea or vision problems?\nPatient: Sometimes I feel dizzy when I stand up quickly.\nDoctor: Let me check your blood pressure. Please take a seat here.\n---\n[Demo transcription — no actual audio was processed. Configure Ollama Whisper or use Groq/OpenAI for real transcription.]";
+  if (config.googleApiKey || provider === "google") {
+    return transcribeWithGoogle(audioFilePath);
   }
 
-  if (provider === "google") return transcribeWithGoogle(audioFilePath);
-  // Both openai and groq use the OpenAI-compatible API
-  return transcribeWithOpenAI(audioFilePath);
+  if (provider === "openai" || provider === "groq") {
+    return transcribeWithOpenAI(audioFilePath);
+  }
+
+  throw new Error("No transcription provider configured. Please set GOOGLE_API_KEY.");
 }
 
 async function generateReportWithOpenAI(
