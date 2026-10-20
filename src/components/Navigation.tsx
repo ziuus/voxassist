@@ -19,9 +19,7 @@ export default function Navigation() {
 
   const isLandingPage = pathname === "/";
   const isLoggedIn = status === "authenticated";
-  const isDemoMode = typeof window !== "undefined"
-    ? process.env.NEXT_PUBLIC_DEMO_MODE === "true"
-    : false;
+  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
   const showFullNav = isLoggedIn || isDemoMode;
 
   // Show full nav only when logged in or in demo mode

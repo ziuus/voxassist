@@ -46,7 +46,7 @@ export default function NewRecordingPage() {
   const [medicalSpecialty, setMedicalSpecialty] = useState("General Practice");
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [browserTranscript, setBrowserTranscript] = useState("");
-  const [transcriptionMode, setTranscriptionMode] = useState<TranscriptionMode>("browser");
+  const [transcriptionMode, setTranscriptionMode] = useState<TranscriptionMode>(getDefaultTranscriptionMode);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
