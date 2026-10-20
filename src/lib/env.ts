@@ -80,7 +80,10 @@ export function getRuntimeConfig(): RuntimeConfig {
     jobQueueEnabled,
     forceLocalStorage,
     redisUrl: getEnv("REDIS_URL"),
-    googleApiKey: getEnv("GOOGLE_API_KEY"),
+    googleApiKey:
+      getEnv("GOOGLE_API_KEY") ??
+      getEnv("GEMINI_API_KEY") ??
+      getEnv("GOOGLE_GENERATIVE_AI_API_KEY"),
     openaiApiKey: getEnv("OPENAI_API_KEY"),
     databaseUrl: getEnv("DATABASE_URL"),
     awsS3Bucket: getEnv("AWS_S3_BUCKET"),

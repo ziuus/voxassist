@@ -112,30 +112,57 @@ export function extractJsonObject(raw: string): string {
 
 async function transcribeWithGoogle(audioFilePath: string): Promise<string> {
   const client = getGoogleClient();
-  const model = process.env.GOOGLE_TRANSCRIPTION_MODEL ?? "gemini-2.0-flash";
+  const primaryModel =
+    process.env.GOOGLE_TRANSCRIPTION_MODEL ?? "gemini-3.5-transcribe";
   const audioBuffer = fs.readFileSync(audioFilePath);
   const audioBase64 = audioBuffer.toString("base64");
   const mimeType = getMimeTypeFromPath(audioFilePath);
 
-  const genModel = client.getGenerativeModel({ model });
-  const response = await genModel.generateContent([
-    {
-      text: "Transcribe this medical consultation audio verbatim. Return only the transcript text with no extra commentary.",
-    },
-    {
-      inlineData: {
-        mimeType,
-        data: audioBase64,
-      },
-    },
-  ]);
-
-  const transcript = response.response.text().trim();
-  if (!transcript) {
-    throw new Error("No transcription returned from Google model");
+  let genModel;
+  try {
+    genModel = client.getGenerativeModel({ model: primaryModel });
+  } catch {
+    genModel = client.getGenerativeModel({ model: "gemini-2.0-flash" });
   }
 
-  return transcript;
+  const prompt =
+    "Transcribe this medical consultation audio verbatim. Return only the transcript text with no extra commentary.";
+
+  try {
+    const response = await genModel.generateContent([
+      { text: prompt },
+      {
+        inlineData: {
+          mimeType,
+          data: audioBase64,
+        },
+      },
+    ]);
+
+    const transcript = response.response.text().trim();
+    if (!transcript) {
+      throw new Error("No transcription returned from Google model");
+    }
+
+    return transcript;
+  } catch (err) {
+    if (primaryModel !== "gemini-2.0-flash") {
+      // Fallback to gemini-2.0-flash if gemini-3.5-transcribe is not accessible on the current tier
+      const fallbackModel = client.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const fallbackResponse = await fallbackModel.generateContent([
+        { text: prompt },
+        {
+          inlineData: {
+            mimeType,
+            data: audioBase64,
+          },
+        },
+      ]);
+      const fallbackTranscript = fallbackResponse.response.text().trim();
+      if (fallbackTranscript) return fallbackTranscript;
+    }
+    throw err;
+  }
 }
 
 async function transcribeWithOpenAI(audioFilePath: string): Promise<string> {

@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import AudioRecorder from "@/components/AudioRecorder";
 
 type InputMethod = "record" | "upload";
-type TranscriptionMode = "server" | "browser";
+type TranscriptionMode = "gemini-live" | "server" | "browser";
 
 function getDefaultTranscriptionMode(): TranscriptionMode {
-  if (typeof window === "undefined") return "browser"; // Default for SSR
+  if (typeof window === "undefined") return "gemini-live"; // Default for SSR
   
   // Check localStorage for saved preference
   try {
@@ -25,10 +25,10 @@ function getDefaultTranscriptionMode(): TranscriptionMode {
   
   // Fallback to env var
   const configured = process.env.NEXT_PUBLIC_DEFAULT_TRANSCRIPTION_MODE;
-  if (configured === "server") {
-    return "server";
+  if (configured === "server" || configured === "browser") {
+    return configured;
   }
-  return "browser";
+  return "gemini-live";
 }
 
 function isBrowserTranscriptionSupported(): boolean {
@@ -285,7 +285,7 @@ export default function NewRecordingPage() {
                   Transcription source
                 </p>
                 <div className="mt-2 flex gap-2 rounded-full bg-white/50 dark:bg-slate-900/50 p-1">
-                  {(["server", "browser"] as TranscriptionMode[]).map((mode) => (
+                  {(["gemini-live", "browser", "server"] as TranscriptionMode[]).map((mode) => (
                     <button
                       key={mode}
                       type="button"
@@ -294,13 +294,17 @@ export default function NewRecordingPage() {
                         setTranscriptionMode(mode);
                         setBrowserTranscript("");
                       }}
-                      className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${
+                      className={`flex-1 rounded-full py-2 text-xs sm:text-sm font-semibold transition ${
                         transcriptionMode === mode
                           ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow"
                           : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                       } ${mode === "browser" && !browserSupported ? "opacity-40 cursor-not-allowed" : ""}`}
                     >
-                      {mode === "server" ? "Server AI" : "Offline (Local)"}
+                      {mode === "gemini-live"
+                        ? "Gemini 3.5 Live"
+                        : mode === "browser"
+                          ? "Web Speech"
+                          : "Server AI"}
                     </button>
                   ))}
                 </div>
@@ -308,13 +312,23 @@ export default function NewRecordingPage() {
 
               <AudioRecorder
                 onRecordingComplete={handleRecordingComplete}
-                enableBrowserTranscription={transcriptionMode === "browser"}
+                transcriptionMode={transcriptionMode}
                 onTranscriptReady={handleTranscriptReady}
               />
 
+              {mounted && transcriptionMode === "gemini-live" && (
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Google Gemini 3.5 Transcribe Live: Real-time, streaming 16kHz PCM transcription via Live API.
+                </p>
+              )}
               {mounted && transcriptionMode === "browser" && (
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Browser transcription using Web Speech API. Works in Chrome/Edge. Real-time, no downloads.
+                  Browser transcription using Web Speech API. Works in Chrome/Edge.
+                </p>
+              )}
+              {mounted && transcriptionMode === "server" && (
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Audio will be sent to the backend server and transcribed with Gemini 3.5 upon upload.
                 </p>
               )}
             </div>
