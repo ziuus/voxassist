@@ -8,26 +8,6 @@ type InputMethod = "record" | "upload";
 type TranscriptionMode = "gemini-live" | "server" | "browser";
 
 function getDefaultTranscriptionMode(): TranscriptionMode {
-  if (typeof window === "undefined") return "gemini-live"; // Default for SSR
-  
-  // Check localStorage for saved preference
-  try {
-    const stored = localStorage.getItem("voxassist_settings");
-    if (stored) {
-      const settings = JSON.parse(stored);
-      if (settings.transcriptionMode) {
-        return settings.transcriptionMode;
-      }
-    }
-  } catch (err) {
-    console.error("Failed to load settings:", err);
-  }
-  
-  // Fallback to env var
-  const configured = process.env.NEXT_PUBLIC_DEFAULT_TRANSCRIPTION_MODE;
-  if (configured === "server" || configured === "browser") {
-    return configured;
-  }
   return "gemini-live";
 }
 
@@ -56,9 +36,7 @@ export default function NewRecordingPage() {
   useEffect(() => {
     setMounted(true);
     setBrowserSupported(isBrowserTranscriptionSupported());
-    setTranscriptionMode(
-      isBrowserTranscriptionSupported() ? getDefaultTranscriptionMode() : "server"
-    );
+    setTranscriptionMode("gemini-live");
     
     // Load default names from settings
     try {
@@ -315,6 +293,20 @@ export default function NewRecordingPage() {
                 transcriptionMode={transcriptionMode}
                 onTranscriptReady={handleTranscriptReady}
               />
+
+              {browserTranscript && (
+                <div className="rounded-2xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50/80 dark:bg-emerald-950/30 p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+                      Captured Transcript
+                    </span>
+                    <span className="text-xs text-emerald-600 dark:text-emerald-400">Ready for medical report</span>
+                  </div>
+                  <p className="text-sm text-slate-800 dark:text-slate-100 whitespace-pre-wrap leading-relaxed">
+                    {browserTranscript}
+                  </p>
+                </div>
+              )}
 
               {mounted && transcriptionMode === "gemini-live" && (
                 <p className="text-xs text-slate-500 dark:text-slate-400">

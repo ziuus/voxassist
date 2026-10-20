@@ -28,18 +28,18 @@ function formatDuration(seconds: number): string {
 export default function AudioRecorder({
   onRecordingComplete,
   enableBrowserTranscription = false,
-  transcriptionMode,
+  transcriptionMode = "gemini-live",
   onTranscriptReady,
 }: AudioRecorderProps) {
-  // Determine effective mode: prioritize explicit transcriptionMode, then backward-compat flag
-  const effectiveMode: AudioTranscriptionMode =
-    transcriptionMode ?? (enableBrowserTranscription ? "gemini-live" : "none");
+  // Determine effective mode: default to gemini-live
+  const effectiveMode: AudioTranscriptionMode = transcriptionMode ?? "gemini-live";
 
   const [state, setState] = useState<RecordingState>("idle");
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [completedTranscript, setCompletedTranscript] = useState<string>("");
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -88,6 +88,7 @@ export default function AudioRecorder({
     setError(null);
     setAudioUrl(null);
     setDuration(0);
+    setCompletedTranscript("");
     chunksRef.current = [];
     resetBrowserTranscript();
     geminiLive.reset();
@@ -127,22 +128,56 @@ export default function AudioRecorder({
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
 
-      recorder.onstop = () => {
+      recorder.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: mimeType });
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
         onRecordingComplete(blob);
 
         if (effectiveMode === "gemini-live") {
-          const finalLive = geminiLive.stop();
-          if (onTranscriptReady && finalLive) {
-            onTranscriptReady(finalLive);
+          let finalLive = geminiLive.stop();
+
+          // Auto-fallback to Gemini 3.5 audio model if live streaming didn't resolve text
+          if (!finalLive && blob.size > 0) {
+            try {
+              const arrayBuffer = await blob.arrayBuffer();
+              const bytes = new Uint8Array(arrayBuffer);
+              let binary = "";
+              for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+              }
+              const base64 = btoa(binary);
+
+              const res = await fetch("/api/gemini/live-chunk", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ audioBase64: base64, mimeType }),
+              });
+              if (res.ok) {
+                const data = await res.json();
+                if (data.text && !data.text.includes("[No audible speech")) {
+                  finalLive = data.text;
+                }
+              }
+            } catch (err) {
+              console.warn("[AudioRecorder] Live-chunk fallback error:", err);
+            }
+          }
+
+          if (finalLive) {
+            setCompletedTranscript(finalLive);
+            if (onTranscriptReady) {
+              onTranscriptReady(finalLive);
+            }
           }
         } else if (effectiveMode === "browser") {
           SpeechRecognition.stopListening();
           const finalWebSpeech = browserTranscriptRef.current;
-          if (onTranscriptReady && finalWebSpeech) {
-            onTranscriptReady(finalWebSpeech);
+          if (finalWebSpeech) {
+            setCompletedTranscript(finalWebSpeech);
+            if (onTranscriptReady) {
+              onTranscriptReady(finalWebSpeech);
+            }
           }
         }
 
@@ -219,10 +254,12 @@ export default function AudioRecorder({
     setDuration(0);
     setState("idle");
     chunksRef.current = [];
+    setCompletedTranscript("");
   }, [audioUrl, stopTimer, browserListening, geminiLive, resetBrowserTranscript]);
 
   const activeTranscript =
-    effectiveMode === "gemini-live" ? geminiLive.transcript : browserTranscript;
+    completedTranscript ||
+    (effectiveMode === "gemini-live" ? geminiLive.transcript : browserTranscript);
 
   return (
     <div className="space-y-5">
