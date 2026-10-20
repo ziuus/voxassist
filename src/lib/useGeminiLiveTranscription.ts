@@ -41,20 +41,10 @@ export function useGeminiLiveTranscription(
   const audioContextRef = useRef<AudioContext | null>(null);
   const mediaStreamSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
-  const finalSegmentsRef = useRef<string[]>([]);
+  const accumulatedTextRef = useRef<string>("");
   const isStoppingRef = useRef(false);
   const retryCountRef = useRef(0);
   const mediaStreamRef = useRef<MediaStream | null>(null);
-
-  // Synchronize transcript string with accumulated segments
-  const updateFullTranscript = useCallback((interim = "") => {
-    const finals = finalSegmentsRef.current.join(" ").trim();
-    if (interim.trim()) {
-      setTranscript(finals ? `${finals} ${interim}` : interim);
-    } else {
-      setTranscript(finals);
-    }
-  }, []);
 
   const cleanupAudioPipeline = useCallback(() => {
     if (processorRef.current) {
@@ -130,7 +120,7 @@ export function useGeminiLiveTranscription(
           }
         }, 10000);
 
-        ws.onopen = () => {
+        ws.onopen = async () => {
           clearTimeout(connectTimeout);
           setIsConnected(true);
           setIsConnecting(false);
@@ -146,6 +136,14 @@ export function useGeminiLiveTranscription(
             (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
           const audioCtx = new AudioContextClass();
           audioContextRef.current = audioCtx;
+
+          if (audioCtx.state === "suspended") {
+            try {
+              await audioCtx.resume();
+            } catch (resumeErr) {
+              console.warn("[GeminiLive] AudioContext resume failed:", resumeErr);
+            }
+          }
 
           const source = audioCtx.createMediaStreamSource(stream);
           mediaStreamSourceRef.current = source;
@@ -206,14 +204,22 @@ export function useGeminiLiveTranscription(
 
           if (parsed.interimTranscript) {
             setInterimTranscript(parsed.interimTranscript);
-            updateFullTranscript(parsed.interimTranscript);
           }
 
-          if (parsed.finalTranscript) {
-            finalSegmentsRef.current.push(parsed.finalTranscript.trim());
+          if (parsed.delta) {
+            accumulatedTextRef.current += parsed.delta;
+            const currentCombined = accumulatedTextRef.current.trimStart();
+            setTranscript(currentCombined);
+            onFinalTranscript?.(currentCombined);
+          } else if (parsed.finalTranscript) {
+            accumulatedTextRef.current += (accumulatedTextRef.current ? " " : "") + parsed.finalTranscript;
+            const currentCombined = accumulatedTextRef.current.trim();
+            setTranscript(currentCombined);
+            onFinalTranscript?.(currentCombined);
+          }
+
+          if (parsed.turnComplete) {
             setInterimTranscript("");
-            updateFullTranscript("");
-            onFinalTranscript?.(finalSegmentsRef.current.join(" ").trim());
           }
         };
 
@@ -245,7 +251,7 @@ export function useGeminiLiveTranscription(
         onError?.(errMsg);
       }
     },
-    [model, languageCodes, onError, onFinalTranscript, updateFullTranscript]
+    [model, languageCodes, onError, onFinalTranscript]
   );
 
   const start = useCallback(
@@ -258,15 +264,14 @@ export function useGeminiLiveTranscription(
 
   const stop = useCallback((): string => {
     isStoppingRef.current = true;
+    const finalText = accumulatedTextRef.current.trim();
     cleanupAudioPipeline();
     setInterimTranscript("");
-    const finalText = finalSegmentsRef.current.join(" ").trim();
-    updateFullTranscript("");
     return finalText;
-  }, [cleanupAudioPipeline, updateFullTranscript]);
+  }, [cleanupAudioPipeline]);
 
   const reset = useCallback(() => {
-    finalSegmentsRef.current = [];
+    accumulatedTextRef.current = "";
     setInterimTranscript("");
     setTranscript("");
     setError(null);

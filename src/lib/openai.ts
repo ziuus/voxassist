@@ -113,7 +113,7 @@ export function extractJsonObject(raw: string): string {
 async function transcribeWithGoogle(audioFilePath: string): Promise<string> {
   const client = getGoogleClient();
   const primaryModel =
-    process.env.GOOGLE_TRANSCRIPTION_MODEL ?? "gemini-3.5-transcribe";
+    process.env.GOOGLE_TRANSCRIPTION_MODEL ?? "gemini-2.5-flash";
   const audioBuffer = fs.readFileSync(audioFilePath);
   const audioBase64 = audioBuffer.toString("base64");
   const mimeType = getMimeTypeFromPath(audioFilePath);
@@ -128,6 +128,7 @@ async function transcribeWithGoogle(audioFilePath: string): Promise<string> {
   const prompt =
     "Transcribe this medical consultation audio verbatim. Return only the transcript text with no extra commentary.";
 
+  let transcript = "";
   try {
     const response = await genModel.generateContent([
       { text: prompt },
@@ -139,21 +140,17 @@ async function transcribeWithGoogle(audioFilePath: string): Promise<string> {
       },
     ]);
 
-    let transcript = "";
     try {
       transcript = response.response.text().trim();
     } catch {
       transcript = "";
     }
+  } catch (primaryErr) {
+    console.warn("[transcribeWithGoogle] Primary model failed:", primaryErr);
+  }
 
-    if (!transcript) {
-      return "[No audible speech detected in recording]";
-    }
-
-    return transcript;
-  } catch (err) {
-    if (primaryModel !== "gemini-2.5-flash") {
-      // Fallback to gemini-2.5-flash if primary transcription model encountered an issue
+  if (!transcript && primaryModel !== "gemini-2.5-flash") {
+    try {
       const fallbackModel = client.getGenerativeModel({ model: "gemini-2.5-flash" });
       const fallbackResponse = await fallbackModel.generateContent([
         { text: prompt },
@@ -164,17 +161,21 @@ async function transcribeWithGoogle(audioFilePath: string): Promise<string> {
           },
         },
       ]);
-      let fallbackTranscript = "";
       try {
-        fallbackTranscript = fallbackResponse.response.text().trim();
+        transcript = fallbackResponse.response.text().trim();
       } catch {
-        fallbackTranscript = "";
+        transcript = "";
       }
-      if (fallbackTranscript) return fallbackTranscript;
-      return "[No audible speech detected in recording]";
+    } catch (fallbackErr) {
+      console.warn("[transcribeWithGoogle] Fallback model failed:", fallbackErr);
     }
-    throw err;
   }
+
+  if (!transcript) {
+    return "[No audible speech detected in recording]";
+  }
+
+  return transcript;
 }
 
 async function transcribeWithOpenAI(audioFilePath: string): Promise<string> {

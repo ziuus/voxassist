@@ -109,6 +109,7 @@ export function createRealtimeInputChunk(base64Pcm: string): string {
 export interface ParsedGeminiMessage {
   interimTranscript: string | null;
   finalTranscript: string | null;
+  delta: string | null;
   error: string | null;
   turnComplete: boolean;
   setupComplete: boolean;
@@ -121,6 +122,7 @@ export function parseGeminiLiveMessage(rawJson: string): ParsedGeminiMessage {
   const result: ParsedGeminiMessage = {
     interimTranscript: null,
     finalTranscript: null,
+    delta: null,
     error: null,
     turnComplete: false,
     setupComplete: false,
@@ -153,13 +155,14 @@ export function parseGeminiLiveMessage(rawJson: string): ParsedGeminiMessage {
         result.interimTranscript = interimObj.text;
       }
 
-      // Check finalized input transcription
+      // Check finalized input transcription deltas
       const finalObj =
         serverContent.inputTranscription ||
         serverContent.input_transcription ||
         serverContent.inputTranscriptions?.[0];
       if (finalObj?.text) {
         result.finalTranscript = finalObj.text;
+        result.delta = finalObj.text;
       }
 
       // Also check modelTurn parts if model emitted text
@@ -173,6 +176,7 @@ export function parseGeminiLiveMessage(rawJson: string): ParsedGeminiMessage {
           result.finalTranscript = result.finalTranscript
             ? `${result.finalTranscript} ${texts}`
             : texts;
+          result.delta = result.delta ? `${result.delta} ${texts}` : texts;
         }
       }
     }

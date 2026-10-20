@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const primaryModel =
-      process.env.GOOGLE_TRANSCRIPTION_MODEL ?? "gemini-3.5-transcribe";
+      process.env.GOOGLE_TRANSCRIPTION_MODEL ?? "gemini-2.5-flash";
 
     const prompt = previousTranscript
       ? `Continue transcribing this audio stream. Previously transcribed context: "${previousTranscript}". Transcribe new speech verbatim. Output only the new text.`
@@ -48,22 +48,26 @@ export async function POST(req: NextRequest) {
       } catch {
         text = "";
       }
-    } catch {
-      // Fallback to gemini-2.5-flash
-      const fallbackModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-      const result = await fallbackModel.generateContent([
-        { text: prompt },
-        {
-          inlineData: {
-            mimeType: mimeType.split(";")[0],
-            data: audioBase64,
-          },
-        },
-      ]);
+    } catch (primaryErr) {
+      console.warn("[live-chunk] Primary model error:", primaryErr);
+    }
+
+    // Fallback if primary model returned empty text or failed
+    if (!text && primaryModel !== "gemini-2.5-flash") {
       try {
+        const fallbackModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const result = await fallbackModel.generateContent([
+          { text: prompt },
+          {
+            inlineData: {
+              mimeType: mimeType.split(";")[0],
+              data: audioBase64,
+            },
+          },
+        ]);
         text = result.response.text().trim();
-      } catch {
-        text = "";
+      } catch (fallbackErr) {
+        console.warn("[live-chunk] Fallback model error:", fallbackErr);
       }
     }
 

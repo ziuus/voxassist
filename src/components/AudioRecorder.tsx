@@ -40,6 +40,7 @@ export default function AudioRecorder({
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [completedTranscript, setCompletedTranscript] = useState<string>("");
+  const [isProcessingChunk, setIsProcessingChunk] = useState<boolean>(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -135,9 +136,12 @@ export default function AudioRecorder({
         onRecordingComplete(blob);
 
         if (effectiveMode === "gemini-live") {
+          setIsProcessingChunk(true);
+          // Allow short grace period (400ms) for trailing audio packets to complete
+          await new Promise((resolve) => setTimeout(resolve, 400));
           let finalLive = geminiLive.stop();
 
-          // Auto-fallback to Gemini 3.5 audio model if live streaming didn't resolve text
+          // Auto-fallback to Gemini audio model if live streaming didn't resolve text
           if (!finalLive && blob.size > 0) {
             try {
               const arrayBuffer = await blob.arrayBuffer();
@@ -157,6 +161,8 @@ export default function AudioRecorder({
                 const data = await res.json();
                 if (data.text && !data.text.includes("[No audible speech")) {
                   finalLive = data.text;
+                } else if (data.text) {
+                  setCompletedTranscript(data.text);
                 }
               }
             } catch (err) {
@@ -170,6 +176,7 @@ export default function AudioRecorder({
               onTranscriptReady(finalLive);
             }
           }
+          setIsProcessingChunk(false);
         } else if (effectiveMode === "browser") {
           SpeechRecognition.stopListening();
           const finalWebSpeech = browserTranscriptRef.current;
@@ -400,7 +407,15 @@ export default function AudioRecorder({
           </div>
 
           <div className="min-h-16 text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
-            {activeTranscript ? (
+            {isProcessingChunk ? (
+              <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 py-2">
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                <span className="italic font-medium">Finalizing transcription with Gemini AI...</span>
+              </div>
+            ) : activeTranscript ? (
               <span>
                 {activeTranscript}
                 {effectiveMode === "gemini-live" && geminiLive.interimTranscript && (
