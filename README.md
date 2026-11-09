@@ -4,6 +4,11 @@
 
 VoxAssist is a world-class, agentic voice assistant designed for medical professionals. It leverages **Gemini-2.0** to transcribe consultations, generate deep clinical reports, and provide a **RAG-powered chat** interface for querying patient history with zero latency.
 
+> Building this in the open — if it saves you time, a star helps others find it.
+> Found a bug, or have an idea? [Open an issue](https://github.com/ziuus/voxassist/issues).
+> Questions and ideas? Say hello in [Discussions](https://github.com/ziuus/voxassist/discussions).
+> Bug reports and clinical workflow ideas welcome.
+
 ## ⚡ Core Capabilities
 
 - **Agentic RAG Chat**: "Ask Dr. Vox" — Query thousands of past recordings and reports using neural retrieval and clinical synthesis.
